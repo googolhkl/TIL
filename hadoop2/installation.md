@@ -92,7 +92,7 @@ $ protoc --version
 
 ##### 네임노드 HA를 구성하려면 먼저 주키퍼를 설치해야 한다.
 
-##주키퍼 실행 계정 생성
+####주키퍼 실행 계정 생성
 ##### root 계정으로 로그인한 후, zookeeper계정을 생성한다.
 
 ```
@@ -109,7 +109,7 @@ $ ssh-copy-id -i /home/hkl/.ssh/id_rsa.pub zookeeper@googolhkl2
 $ ssh-copy-id -i /home/hkl/.ssh/id_rsa.pub zookeeper@googolhkl3
 ```
 
-## 주키퍼 다운로드
+#### 주키퍼 다운로드
 ##### googolhkl1의 zookeeper계정으로 로그인 해준다.
 
 ```
@@ -133,7 +133,7 @@ $ vi conf/zoo.cfg
 $ cd
 $ mkdir data
 $ cd data
-$ vi myid # 이 파일에는 1을 적어줍니다.
+$ vi myid # 이 파일에는 1을 적어준다.
 ```
 ##### 이렇게 googolhkl1에 zookeeper계정 설정을 했는데, googolhkl2, googolhkl3에도 해야한다.
 ##### scp로 복사를 진행하겠다. googolhkl1의 zookeeper계정의 공개키를 googolhkl2, googolhkl3의 zookeeper계정에 복사를 해주고 진행한다.
@@ -162,3 +162,156 @@ $ ./bin/zkServer.sh status
 ###### export JAVA_HOME=/usr/lib/vim/java-8-oracle
 ###### export ZK_HOME=/home/zookeeper/zookeeper/
 ###### export PATH=$PATH:$ZK_HOME/bin
+
+### 6. 하둡2 설치
+##### googolhkl1의 서버에 zookeeper계정이 아닌 hkl계정으로 로그인해서 다운로드를 받고 압축을 푼다.
+
+```
+$ cd ~ 
+$ wget http://mirror.apache-kr.org/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
+$ tar xvfz hadoop-2.6.0.tar.gz
+$ ln -s hadoop-2.6.0 hadoop2
+$ cd hadoop2
+```
+#### 하둡2 환경 파일 수정
+##### ~/hadoop2.6.0/etc/hadoop/ 디렉터리에 환경 파일이 있다.
+##### [hadoop-env.sh](www.naver.com) 파일을 수정해준다.
+##### [slaves](www.naver.com) 파일을 수정해준다.
+##### [core-site.xml](www.naver.com) 파일을 수정해준다.
+##### [hdfs-site.xml](www.naver.com) 파일을 수정해준다.
+##### [mapred-site.xml](www.naver.com) 파일을 수정해준다.
+##### [yarn-env.sh](www.naver.com) 파일을 수정해준다.
+##### [yarn-site.xml](www.naver.com) 파일을 수정해준다.
+
+#### 하둡2 배포
+##### googolhkl1에 설정된 하둡2 설치 파일을 전체 서버에 배포한다.
+
+```
+$ cd ~
+$ tar zcvf hadoop.tar.gz hadoop-2.6.0/
+$ scp hadoop.tar.gz hkl@googolhkl2:/home/hkl
+$ scp hadoop.tar.gz hkl@googolhkl3:/home/hkl
+$ scp hadoop.tar.gz hkl@googolhkl4:/home/hkl
+$ ssh hkl@googolhkl2 "cd ~; tar xvfz hadoop.tar.gz"
+$ ssh hkl@googolhkl3 "cd ~; tar xvfz hadoop.tar.gz"
+$ ssh hkl@googolhkl4 "cd ~; tar xvfz hadoop.tar.gz"
+```
+
+#### 하둡2 실행
+##### ZKFC를 실행하기 전에 반드시 아래와 같이 주키퍼를 초기화해야 한다. (주키퍼 서버를 실행한 상태여야 한다)
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs zkfc -formatZK
+```
+
+##### HDFS에 파일을 저장하려면 네임노드를 미리 포맷해야 한다. 네임노드 HA에서는 네임노드를 포맷하기 전에 반드시 저널 노드를 실행해야 한다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start journalnode
+hkl@googolhkl2 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start journalnode
+hkl@googolhkl3 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start journalnode
+```
+
+##### 저널 노드가 실행됐으니 네임노드를 포맷해 준다.
+
+```
+ogolhkl1 hadoop-2.6.0$ ./bin/hdfs namenode -format
+```
+
+##### 네임노드가 포맷되고 나면 다음과 같이 액티브 네임노드를 실행한다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start namenode
+```
+
+##### 이어서 주키퍼 장애 컨트롤러를 실행한다. 
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start zkfc
+```
+
+##### 전체 데이터노드를 실행한다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/hadoop-daemons.sh start datanode
+```
+
+##### 이제 스탠드바이 네임노드를 설정한다. 우선 스탠드바이 네임노드를 실행할 서버(googolhkl2)에 접속한 후 하둡 디렉터리로 이동해 다음과 같이 액티브 네임노드의 메타데이터를 복사한다.
+##### bootstrapStandby 명령어를 실행하면 스탠드바이 네임노드를 포맷하고 액티브 네임노드의 메타데이터가 스탠드바이 네임노드로 복사된다.
+
+```
+hkl@googolhkl2 hadoop-2.6.0$ ./bin/hdfs namenode -bootstrapStandby
+```
+
+##### 메타데이터 복사가 완료되면 다음과 같이 스탠드바이 네임노드를 실행한다
+
+```
+hkl@googolhkl2 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start namenode
+```
+
+##### 다음으로 스탠드바이 네임노드용 주키퍼 장애 컨트롤러를 실행한다,
+
+```
+hkl@googolhkl2 hadoop-2.6.0$ ./sbin/hadoop-daemon.sh start zkfc
+```
+
+##### 이제 모든 HDFS 설치가 완료 됐으니 테스트 해보자.
+##### 실행은 어느 서버에서 실행하든 상관 없다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -ls /
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -mkdir /user
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -mkdir/user/hkl
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -mkdir/user/hkl/conf
+```
+
+##### 디렉터리를 생성했고, 이제 파일을 업로드 하자. 업로드할 파일은 하둡 환경설정 파일이다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -put etc/hadoop/hadoop-env.sh /user/hkl/conf
+
+```
+
+##### 성공적으로 업로드 됐는지 확인하자.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/hdfs dfs -ls conf
+```
+
+##### 이제 얀 클러스터를 실행한다.
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/start-yarn.sh
+```
+
+##### 맵리듀스 잡을 위한 히스토리 서버도 함께 실행한다.
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./sbin/mr-jobhistory-daemon.sh start historyserver
+```
+
+##### 이제 웹에 액티브 네임노드인 http://googolhkl1:50070 에 접속하면 웹 인터페이스가 나온다.
+##### wordcount 예제를 실행해 보자
+
+```
+hkl@googolhkl1 hadoop-2.6.0$ ./bin/yarn jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.6.0.jar wordcount conf output
+```
+
+##### 이번에는 네임노드 HA가 제대로 동작하는지 확인해 보자
+##### jps명령으로 NameNode의 pid를 확인 한 후  
+
+```
+$ jps
+```
+
+##### kill명령어로 제거해준다.
+
+```
+$ kill -9 네임노드_PID
+```
+
+##### 그럼 http://googolhkl1:50070 에 접속이 안되고 http://googolhkl2:50070 으로 접속이 된다.
+##### 다시 네임노드르 실행해주자.
+
+```
+ $ ./bin/hdfs haadmin -getServiceState nn2
+```
