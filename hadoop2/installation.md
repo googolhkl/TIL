@@ -1,4 +1,5 @@
 # 하둡 설치하기
+### 설치 환경은 우분투 16.04 LTS로 가정한다.
 ### 서버는 googolhkl1, googolhkl2, googolhkl3, googolhkl4로 가정한다.
 ### 서버의 모든 사용자는 hkl로 가정한다.
 
@@ -31,5 +32,57 @@ $ sudo apt-get update
 $ sudo apt-get install oracle-java8-installer
 $ java -version
 ```
+
+### 3. SSH 설정
+##### 가장 먼저 ssh를 설치해주고 실행시킨다. (4개의 서버에서 모두 다 실행한다)
+
+```
+$ sudo apt-get install ssh
+$ service ssh start
+```
+##### 다음으로 googolhkl1으로 와서 공개키 생성과 다른 서버에 복사를 실행한다.
+
+```
+$ ssh-keygen -t rsa
+$ ssh-copy-id -i /home/hkl/.ssh/id_rsa.pub hkl@googolhkl2
+```
+
+##### 성공적으로 완료하면 다음 명령어로 비밀번호 없이 다른 서버에 접속이 가능하다.
+
+```
+$ ssh googolhkl2
+```
+
+##### 이 작업을 나머지 세개의 서버에서도 해준다.
+
+### 4. 프로토콜 버퍼 설치
+##### 하둡2에서 프로토콜 버퍼는 2.5.0을 사용하기 때문에 2.5.0을 설치 해줘야 한다.(다른 버전은 호환이 안됀다)
+##### 프로토콜 버퍼를 설치하기 위해 여러가지 툴이 필요하다. (autoconf, automake, libtool, curl, make, g++, unzip)
+
+```
+$ sudo apt-get install autoconf automake libtool curl make g++ unzip
+```
+
+##### root 비밀번호가 설정 되어 있지 않다면 다음 명령어로 설정 해준다.
+```
+$ sudo passwd root
+````
+
+##### 프로토콜 버퍼를 설치한다.
+```
+$ cd /usr/local 
+$ wget http://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
+$ tar xvfz protobuf-2.5.0
+$ cd protobuf-2.5.0
+$ ./autogen.sh
+$ ./configure
+$ make
+$ make check
+$ make install
+$ ldconfig
+$ protoc --version
+```
+
+
 
 
