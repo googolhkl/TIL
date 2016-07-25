@@ -315,3 +315,6 @@ $ kill -9 네임노드_PID
 ```
  $ ./bin/hdfs haadmin -getServiceState nn2
 ```
+
+### 두번째 실행부터 계속 반복하기 귀찮으니 스크립트로 만들어 버리자.
+##### [hadoopStart.sh](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/hadoopStart.sh) 파일을 실행하면 된다.
