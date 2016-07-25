@@ -126,7 +126,7 @@ $ cp conf/zoo_sample.cfg conf/zoo.cfg
 $ vi conf/zoo.cfg
 ```
 
-##### [zoo.cfg](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/zoo.cfg) 파일을 수정해준다.
+##### zoo.cfg파일을  [zoo.cfg](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/zoo.cfg) 파일로 수정해준다.
 ##### dataDir항목의 디렉터리를 만들고 myid파일도 생성한다. googolhkl1에는 1을 적어준다.
 
 ```
@@ -179,7 +179,7 @@ $ cd hadoop2
 ##### slaves파일을  [slaves](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/slaves) 파일로 수정해준다.
 ##### core-site.xml파일을 [core-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/core-site.xml) 파일로 수정해준다.
 ##### hdfs-site.xml파일을 [hdfs-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/hdfs-site.xml) 파일로 수정해준다.
-##### mapred-site.xml파일을 [mapred-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/mapred-site.xml) 파일로 수정해준다.
+##### mapred-site.xml파일을 [mapred-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/mapred-site.xml.template) 파일로 수정해준다.
 ##### yarn-env.sh파일을 [yarn-env.sh](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/yarn-env.sh) 파일로 수정해준다.
 ##### yarn-site.xml파일을 [yarn-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/yarn-site.xml) 파일로 수정해준다.
 
