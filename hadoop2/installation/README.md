@@ -126,7 +126,7 @@ $ cp conf/zoo_sample.cfg conf/zoo.cfg
 $ vi conf/zoo.cfg
 ```
 
-##### [zoo.cfg](www.naver.com) 파일을 수정해준다.
+##### [zoo.cfg](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/zoo.cfg) 파일을 수정해준다.
 ##### dataDir항목의 디렉터리를 만들고 myid파일도 생성한다. googolhkl1에는 1을 적어준다.
 
 ```
@@ -175,13 +175,13 @@ $ cd hadoop2
 ```
 #### 하둡2 환경 파일 수정
 ##### ~/hadoop2.6.0/etc/hadoop/ 디렉터리에 환경 파일이 있다.
-##### hadoop-env.sh파일을 [hadoop-env.sh](www.naver.com) 파일로 수정해준다.
-##### slaves파일을  [slaves](www.naver.com) 파일로 수정해준다.
-##### core-site.xml파일을 [core-site.xml](www.naver.com) 파일로 수정해준다.
-##### hdfs-site.xml파일을 [hdfs-site.xml](www.naver.com) 파일로 수정해준다.
-##### mapred-site.xml파일을 [mapred-site.xml](www.naver.com) 파일로 수정해준다.
-##### yarn-env.sh파일을 [yarn-env.sh](www.naver.com) 파일로 수정해준다.
-##### yarn-site.xml파일을 [yarn-site.xml](www.naver.com) 파일로 수정해준다.
+##### hadoop-env.sh파일을 [hadoop-env.sh](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/hadoop-env.sh) 파일로 수정해준다.
+##### slaves파일을  [slaves](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/slaves) 파일로 수정해준다.
+##### core-site.xml파일을 [core-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/core-site.xml) 파일로 수정해준다.
+##### hdfs-site.xml파일을 [hdfs-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/hdfs-site.xml) 파일로 수정해준다.
+##### mapred-site.xml파일을 [mapred-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/mapred-site.xml) 파일로 수정해준다.
+##### yarn-env.sh파일을 [yarn-env.sh](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/yarn-env.sh) 파일로 수정해준다.
+##### yarn-site.xml파일을 [yarn-site.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/yarn-site.xml) 파일로 수정해준다.
 
 #### 하둡2 배포
 ##### googolhkl1에 설정된 하둡2 설치 파일을 전체 서버에 배포한다.
