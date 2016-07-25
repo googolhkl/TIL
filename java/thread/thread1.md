@@ -2,7 +2,7 @@
 #####다음은 Thread 클래스로 부터 직접생성하는 3가지 방법이다.
 #### 1. 기본 생성 방법
 
-```
+```java
 import java.awt.*;
 
 class BeepTask implements Runnable
@@ -50,7 +50,7 @@ public class Main
 ```
 
 #### 2. 익명객체를 사용한 방법
-```
+```java
 import java.awt.*;
 
 
@@ -96,7 +96,7 @@ public class Main
 ```
 
 #### 3. 람다식을 사용한 방법
-```
+```java
 import java.awt.*;
 
 public class Main
