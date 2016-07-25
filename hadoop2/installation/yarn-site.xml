@@ -30,7 +30,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 				    </property>
 				     <property>
 				       <name>yarn.resourcemanager.hostname</name>
-				         <value>googolhkl</value>
+				         <value>googolhkl1</value>
 					  </property>
 					  <!-- Site specific YARN configuration properties -->
 					  </configuration>
