@@ -30,6 +30,6 @@ $ mvn
 ##### 다음과 같이 체크박스에 체크를 해준다.
 - [x] Create a simple project (skip archetype selection)
 - [x] Use default Workspace location
-	Location : /home/hkl/source/yarn-examples
+###### Location : /home/hkl/source/yarn-examples
 - [] Add project(s) to working set
 
