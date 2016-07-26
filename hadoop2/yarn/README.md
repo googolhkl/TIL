@@ -31,25 +31,41 @@ $ mvn
 
 - [x] Create a simple project (skip archetype selection)
 - [x] Use default Workspace location
-- [] Add project(s) to working set
+- [ ] Add project(s) to working set
 
 ##### Location : /home/hkl/source/yarn-examples
 ##### Next > 를 누르고 Group Id와 Artifact Id, Version을 다음과 같이 적어준다.
 
-> Group Id : com.hkl.hadoop
-> Artifact Id : yarn-examples
-> 1.0-SNAPSHOT
+> ###### Group Id : com.hkl.hadoop
+> ###### Artifact Id : yarn-examples
+> ###### 1.0-SNAPSHOT
 
 ##### Finish 버튼을 누르면 메이븐 프로젝트 생성을 위한 설정이 완료된다.
 ##### 이제 pom.xml 파일에 하둡관련 설정을 추가하겠다.
 ##### /home/hkl/source/yarn-examples/pom.xml 파일을 [pom.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/pom.xml) 파일로 바꿔준다.
-##### 소스파일을 /home/hkl/source/yarn-examples/src/main/java/ 에 넣어둔다.
+##### 소스파일은 /home/hkl/source/yarn-examples/src/main/java/ 에 넣어둔다.
+
+### 빌드하기
+#### 1. 이클립스로 빌드하기
+##### Run - Run Configuration... - Maven Build 으로 들어간다.
+##### Base Directory는 다음처럼 바꿔준다.
+
+> /home/hkl/source/yarn-examples
+
+##### Goals 에 다음과 같이 적어준다.
+> Goals : clean install 
+
+##### Run 버튼을 누르면 빌드가 된다.
+
+
+#### 2. 커맨드 라인으로 빌드하기
 ##### /home/hkl/source/yarn-examples 에서 다음과 같은 명령어를 실행한다.
 
 ```
 $ mvn clean install
 ```
 
-##### target 디렉터리가 생성된 것을 확인할 수 있다.
+### 빌드완료 확인하기
+##### /home/hkl/source/yarn-examples/target 디렉터리가 생성된 것을 확인할 수 있다.
 ##### target 디렉터리 안에 yarn-examples-1.0.SNAPSHOT.jar 파일이 생성된 것을 확인할 수 있다.
 
