@@ -1,5 +1,5 @@
 # 메이븐
-### 메이븐 설치
+## 메이븐 설치
 ##### 빌드관리 도구로 메이븐을 이용하겠다.
 ##### [메이븐 다운로드 홈페이지](http://maven.apache.org/download.cgi) 에서 메이븐 3.2.3을 설치하거나 다음 명령어로 설치하면 된다.
 
@@ -24,8 +24,7 @@ $ sudo tar xvfz apache-maven-3.2.3-bin.tar.gz
 ```
 $ mvn
 ```
-###  
-### 이클립스와 연동
+## 이클립스와 연동
 ##### 이클립스를 실행시키고 File - New - Other... - Maven - Maven Project - Next > 를 눌러준다.
 ##### 다음과 같이 체크박스에 체크를 해준다.
 
@@ -45,10 +44,8 @@ $ mvn
 ##### /home/hkl/source/yarn-examples/pom.xml 파일을 [pom.xml](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/pom.xml) 파일로 바꿔준다.
 ##### 소스파일은 /home/hkl/source/yarn-examples/src/main/java/ 에 넣어둔다.
 
-### 
-### 빌드하기
-####
-#### 1. 이클립스로 빌드하기
+## 빌드하기
+### 1. 이클립스로 빌드하기
 ##### Run - Run Configuration... - Maven Build 으로 들어간다.
 ##### Base Directory는 다음처럼 바꿔준다.
 
@@ -60,16 +57,14 @@ $ mvn
 ##### Run 버튼을 누르면 빌드가 된다.
 
 
-#### 
-#### 2. 커맨드 라인으로 빌드하기
+### 2. 커맨드 라인으로 빌드하기
 ##### /home/hkl/source/yarn-examples 에서 다음과 같은 명령어를 실행한다.
 
 ```
 $ mvn clean install
 ```
 
-###
-### 빌드완료 확인하기
+## 빌드완료 확인하기
 ##### /home/hkl/source/yarn-examples/target 디렉터리가 생성된 것을 확인할 수 있다.
 ##### target 디렉터리 안에 yarn-examples-1.0.SNAPSHOT.jar 파일이 생성된 것을 확인할 수 있다.
 
