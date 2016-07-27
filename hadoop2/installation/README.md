@@ -324,5 +324,5 @@ $ kill -9 네임노드_PID
 
 ```
 alias hdfs='/home/hkl/hadoop-2.6.0/bin/hdfs'
-alias yarn='/home/hkl/hadoop-2.6.0/bin/yarn'
+alias yarn='/home/hkl/hadoop-2.6.0/bin/yarn' 
 ```
