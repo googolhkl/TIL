@@ -318,3 +318,9 @@ $ kill -9 네임노드_PID
 
 ### 두번째 실행부터 계속 반복하기 귀찮으니 스크립트로 만들어 버리자.
 ##### [hadoopStart.sh](https://github.com/googolhkl/TIL/blob/master/hadoop2/installation/hadoopStart.sh) 파일을 실행하면 된다. (네임노드 포맷만 생략한다)
+
+### 하둡 실행 명령어를 편하게 설정하자.
+##### 홈 디렉터리에 존재하는 .bashrc 파일에 다음과 같이 적어준다.
+
+> alias hdfs='/home/hkl/hadoop-2.6.0/bin/hdfs'
+> alias yarn='/home/hkl/hadoop-2.6.0/bin/yarn'
