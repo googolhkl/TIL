@@ -322,5 +322,7 @@ $ kill -9 네임노드_PID
 ### 하둡 실행 명령어를 편하게 설정하자.
 ##### 홈 디렉터리에 존재하는 .bashrc 파일에 다음과 같이 적어준다.
 
-> alias hdfs='/home/hkl/hadoop-2.6.0/bin/hdfs'
-> alias yarn='/home/hkl/hadoop-2.6.0/bin/yarn'
+```
+alias hdfs='/home/hkl/hadoop-2.6.0/bin/hdfs'
+alias yarn='/home/hkl/hadoop-2.6.0/bin/yarn'
+```
