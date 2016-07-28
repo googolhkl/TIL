@@ -166,5 +166,3 @@ class ThreadB extends Thread
     }
 }
 ```
-
-
