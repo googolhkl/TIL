@@ -53,7 +53,7 @@ ApplicationReport report = yarnClient.getApplicationReport(appId);
 ##### 5. 리소스매니저는 애플리케이션이 정상적으로 등록됐을 경우 ApplicationReport를 반환하다. ApplicationReport는 얀 클러스터에서 실행되는 애플리케이션의 통계 정보를 제공하며, 애플리케이션 ID, 이름, 사용자, 큐, 애플리케이션마스터 정보, 애플리케이션 구동 시간 등의 정보를 포함하고 있다. 반환된 ApplicationReport를 가지고 오류를 판단하는 부분은 [Myclient.java](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyClient.java#L382) 부터 정의 되어있다.
 
 
-### 2. 애플리케이션마스터 실행 요청
+### 2. 애플리케이션마스터 실행 요청 및 fork
 ##### 애플리케이션이 실행되려면 애플리케이션의 라이프 사이클을 관리하는 애플리케이션마스터가 실행돼야 한다.
 ##### 이 부분은 얀의 전체적인 작업흐름에서 2.애플리케이션마스터 실행요청에 해당한다.
 ![애플리케이션마스터 실행요청](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterExecutingRequest.png)
@@ -89,3 +89,6 @@ org.apache.hadoop.mapreduce.v2.app.MRappMaster 1>
 ##### 8. 노드매니저는 AMLauncher가 요청한 컨테이너를 실행한 후 결과가 저장돼 있는 StartContainerResponse를 반환한다.
 
 
+### 3. 애플리케이션마스터 등록
+##### 노드매니저가 애플리케이션을 정상적으로 실행했을 경우 해당 애플리케이션마스터가 리소스매니저에게 등록돼야 한다. 왜냐하면 리소스매니저는 클러스터 내에서 실행되는 여러 개의 애플리케이션마스터에게 자원을 할당하고, 상태를 모니터링해야 하기 때문이다. 아래 그림은 애플리케이션마스터가 리소스매니저에 등록되는 과정을 보여준다.
+![애플리케이션마스터 등록](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterRegistering.png)
