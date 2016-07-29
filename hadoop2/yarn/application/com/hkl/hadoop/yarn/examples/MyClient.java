@@ -34,45 +34,42 @@ public class MyClient
 
 	// 클라이언트의 시작시간
 	private final long clientStartTime = System.currentTimeMillis();
-
 	// 리소스매니저와 통신을 사용하기위한 YarnClient 객체 선언. 
 	private YarnClient yarnClient;
 	// YarnClient를 생성할 때 Configuration 객체가 필요.
 	private Configuration conf;
 
+	
+
+
+
+
+	/*
+		얀 클러스터에서 애플리케이션을 실행하려면 해당 애플리케이션을 관리하는 애플리케이션마스터가 필요하다.
+		클라이언트는 노드매니저가 애플리케이션마스터를 실행하기 위한 다양한 파라미터를 설정한다.
+	*/
 	// 애플리케이션 이름 등록
 	private String appName = "";
-
 	// 애플리케이션마스터의 실행 우선순위
 	private int amPriority = 0;
-
 	// 어플리케이션 마스터가 사용할 큐
 	private String amQueue = "";
-
 	// 애플리케이션마스터를 실행하기 위해 요청할 메모리 크기. 기본값 10MB
 	private int amMemory = 10;
-
 	// 애플리케이션마스터를 실행하기 위해 요청할 CPU 코어 개수. 기본값 1
 	private int amVCores = 1;
-
 	// 애플리케이션마스터가 참조할 JAR 파일 경로
 	private String appMasterJarPath = "";
-
 	// 컨테이너 요청 우선순위
 	private int requestPriority = 0;
-
 	// HelloYarn을 실행할 컨테이너에게 요청할 메모리 크기. 기본값 10MB
 	private int containerMemory = 10;
-
 	// HelloYarn을 실행할 컨테이너에게 요청할 CPU 코어 개수. 기본값 1
 	private int containerVirtualCores = 1;
-
 	// HelloYarn을 실행할 컨테이너 개수
 	private int numContainers = 1;
-
 	// 클라이언트의 타임아웃 대기 시간(단위는 밀리초)
 	private long clientTimeout = 600000;
-
 	private Options opts;
 
 
@@ -168,13 +165,20 @@ public class MyClient
 		return true;
 	}
 
-	/*	애플리케이션 실행을 요청하기 위한 준비 끝	*/
 
 
-	/*	애플리케이션 요청 기능 구현(MyClient의 핵심 기능)	*/
+
+
+
+	/*
+		지금까지 리소스매니저와 통신하기 위한 YarnClient를 생성했고, 애플리케이션을 실행하는 데 필요한 파라미터를 설정했다.
+		이제 애플리케이션 실행을 요청하기 위한 준비는 끝났다.
+		MyClient의 핵심 기능인 애플리케이션 요청 기능을 구현해보겠다.
+	*/
 	public boolean run() throws IOException, YarnException
 	{
 		LOG.info("Running Client");
+		// 리소스매니저와 통신하려면 우선 YarnClient를 실행해야 한다.
 		yarnClient.start();
 
 		//신규 어플리케이션ID를 조회

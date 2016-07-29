@@ -32,35 +32,31 @@ public class MyApplicationMaster
 {
 	private static final Log LOG = LogFactory.getLog(MyApplicationMaster.class);
 
+	/*
+		애플리케이션마스터는 노드매니저에게 컨테이너에서 HelloYarn을 실행할 것을 요청한다.
+		이때 노드매니저에게 요청하는 컨테이너의 스펙은 MyClient가 요청한 파라미터를 사용한다.
+	*/
 	// 어플리케이션어템프트 ID
 	protected ApplicationAttemptId appAttemptID;
-
 	// HellYarn을 실행할 컨테이너 개수. 개본값 1
 	private int numTotalContainers = 1;
-
 	// HelloYarn을 실행하는 컨테이너에게 요청할 메모리 크기. 기본값 10MB
 	private int containerMemory = 10;
-
 	// HelloYarn을 실행하는 컨테이너에게 요청할 CPU 코어 개수. 기본값 1
 	private int containerVirtualCores = 1;
-
 	//HelloYarn의 실행 요청 우선순위
 	private int requestPriority;
-
 	// HelloYarn 클래스가 포함된 JAR파일의 위치
 	private String appJarPath = "";
-
 	//HelloYarn 클래스가 포함된 JAR 파일의 생성 시간
 	private long appJarTimestamp = 0;
-
 	// HelloYarn 클래스가 포함된 JAR 파일의 용량
 	private long appJarPathLen = 0;
-
 	// 이 변수는 애플리케이션마스터가 리소스매니저 및 노드 매니저와 통신할 때 사용
 	private Configuration conf;
 	
-	/*	생성자	    */
 
+	/*	생성자	    */
 	public MyApplicationMaster()
 	{
 		conf = new YarnConfiguration();
@@ -157,10 +153,11 @@ public class MyApplicationMaster
 		return true;
 	}
 
-	/*	애플리케이션 실행	*/
-	// 애플리케이션을 실행하려면 리소스매니저로부터 컨테이너를 할당받고, 
-	// 노드매니저에게 할당된 컨테이너에서 애플리케이션을 실행할 것을 요청해야 한다.
 
+	/*	
+		애플리케이션을 실행하려면 리소스매니저로부터 컨테이너를 할당받고, 
+	 	노드매니저에게 할당된 컨테이너에서 애플리케이션을 실행할 것을 요청해야 한다.
+	*/
 	@SuppressWarnings({"unchecked"})
 	public void run() throws Exception
 	{
