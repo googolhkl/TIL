@@ -12,7 +12,7 @@
 
 ## 얀 단계별 동작 방식
 ##### 위에서 얀의 전체적인 작업 흐름을 보았다. 하지만 실제로 각 컴포넌트 간에는 더 복잡한 상호작용이 발생한다.  
-### 1. 애플리케이션 실행 요청
+### 1. 애플리케이션 실행 요청 (MyClient.java)
 ##### 아래 그림은 YarnClient를 구현한 클래스인 클라이언트가 얀 클러스터에 애플리케이션 실행을 요청했을 때 진행되는 과정을 나타낸다. ClientRMService는 리소스매니저의 내부 컴포넌트로 클라이언트가 호출하는 모든 RPC 호출을 처리한다.
 ##### 이 부분은 얀의 전체적인 작업흐름에서 1. 애플리케이션 실행요청에 해당한다.
 ![애플리케이션 실행 요청](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationExecutingRequest.png)
@@ -64,7 +64,7 @@ ApplicationReport report = yarnClient.getApplicationReport(appId);
 
 ##### 2. ApplicationAttemptId를 애플리케이션이 사용하는 큐에 등록한다. 그리고 RMAppManager가 스케줄 등록 결과를 알 수 있게 RMAppAttemptEvennType.ATTEMPT_ADDED 이벤트를 발생시킨다.
 
-##### 3. RMAppManager는 스케줄러에게 ApplicationAttemptId에 대한 컨테이너 할당을 요청한다. 이 부분은 얀의 전체적인 작업흐름에서 3번(fork) 과정에 속한다.
+##### 3. RMAppManager는 스케줄러에게 ApplicationAttemptId에 대한 컨테이너 할당을 요청한다. 
 ##### 4. 스케줄러는 ApplicationAttemptId에게 컨테이너를 할당한 후 RMAppManager가 애플리케이션마스터를 실행할 수 있게 RMContainerEventType.START를 발생시킨다.
 ##### 5. 스케줄러의 응답을 받은 RMAppManager는 애플리케이션마스터를 실행하는 컴포넌트인 ApplicationMasterLauncher를 실행한다.
 ##### 6. ApplicationMasterLauncher는 AMLauncher를 실행해 애플리케이션마스터를 실행한다. 
@@ -86,9 +86,36 @@ org.apache.hadoop.mapreduce.v2.app.MRappMaster 1>
 <LOG_DIR>/stdout2><LOG_DIR>/stderr
 ```
 
-##### 8. 노드매니저는 AMLauncher가 요청한 컨테이너를 실행한 후 결과가 저장돼 있는 StartContainerResponse를 반환한다.
+##### 8. 노드매니저는 AMLauncher가 요청한 컨테이너를 실행한 후 결과가 저장돼 있는 StartContainerResponse를 반환한다. 이 부분은 얀의 전체적인 작업흐름에서 3번(fork) 과정에 속한다.
 
-
-### 3. 애플리케이션마스터 등록
+### 3. 애플리케이션마스터 등록 (MyApplicationMaster.java)
 ##### 노드매니저가 애플리케이션을 정상적으로 실행했을 경우 해당 애플리케이션마스터가 리소스매니저에게 등록돼야 한다. 왜냐하면 리소스매니저는 클러스터 내에서 실행되는 여러 개의 애플리케이션마스터에게 자원을 할당하고, 상태를 모니터링해야 하기 때문이다. 아래 그림은 애플리케이션마스터가 리소스매니저에 등록되는 과정을 보여준다.
 ![애플리케이션마스터 등록](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterRegistering.png)
+
+##### 1. ApplicationMasterProtocol은 리소스매니저와 애플리케이션마스터 간에 필요한 다음과 같은 인터페이스가 정의돼있다. 참고로 얀은 ApplicationMasterProtocol을 구현한 기본 클라이언트인 AMRMClient와 AMRMClientAsync를 제공한다. 또는 기본 클라이언트를 사용하지 않고, 개발자가 직접 MasterProtocol 인터페이스를 구현할 수도 있다.
+##### - 리소스매니저에게 애플리케이션마스터 등록(registerApplicationMaster)
+##### - 리소스매니저에게 애플리케이션마스터 해제(finishApplicationMaster)
+##### - 리소스매니저에게 리소스 할당 요청(allocate)
+##### 애플리케이션마스터의 클라이언트는 registerApplicationMaster 메소드를 호출해 애플리케이션마스터 등록을 요청한다. 이때 registerApplicationMaster의 파라미터에는 애플리케이션마스터의 호스트명, 포트, 애플리케이션마스터의 상태를 모니터링하기 위한 URL이 포함된다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2afb2fa/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyApplicationMaster.java#L172)에 다음과 같이 작성되어 있다.
+
+```java
+amRMClient.registerApplicationMaster("", 0, "");
+```
+
+##### 2. 리소스매니저의 애플리케이션마스터 목록을 관리하는 ApplicationMasterService는 자신이 관리하고 있는 애플리케이션마스터 목록에 해당 애플리케이션을 추가한 후 AllocateResponse 객체를 반환한다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2afb2fa/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyApplicationMaster.java#L208)에 다음과 같이 작성되어 있다.
+
+```java
+AllocateResponse response = amRMClient.allocate(0);
+```
+
+##### 3. 이제 애플리케이션마스터는 allocate 메소드를 호출해 애플리케이션을 실행하는데 필요한 리소스 할당을 요청한다. 이때 파라미터는 AllocateRequest를 사용하며, 다음과 같은 정보가 저장된다.
+##### - 응답ID: 응답 ID가 중복됐는지 확인하는데 사용
+##### - 애플리케이션마스터가 실행 중인 애플리케이션의 진행 상태
+##### - 애플리케이션이 요청하는 리소스 목록
+##### - 애플리케이션 실행이 완료된 컨테이너 목록
+##### - 블랙 리소스 리스트: 애플리케이션마스터가 사용해서는 안되는 리소스 목록
+##### - allocate 호출 횟수
+##### allocate 메소드는 애플리케이션마스터의 클라이언트가 리소스매니저에게 자신의 상태를 알려주기 위한 하트비트용도로 사용된다 리소스매니저는 AllocateRequest에 포함돼 있는 애플리케이션의 진행 상태나 하트비트 전송 주기를 체크해 애플리케이션마스터의 상태를 확인할 수 있다.
+##### 또한 애플리케이션마스터는 필요한 컨테이너를 한번에 할당잗지 못하더라도 최종적으로는 필요한 모든 컨테이너를 할당받을 수 있다. 왜냐하면 allocate 메소드가 주기적으로 호출되기 때문이다. 참가로 AVRMClient와 AMRMCLientAsync는 1초에 한번씩 allocate메소드를 호출한다.
+
+##### 4. ApplicationMasterService는 컨테이너 할당 요청을 스케줄러에게 위임한다. 스케줄러는 해당 컨테이너가 가용한지 여부를 응답한다. 그리고 ApplicationMasterService가 스케줄러의 응답 결과를 AllocateResponse에 설정한 후 애플리케이션 마스터에게 반환한다.
