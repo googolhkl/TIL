@@ -11,9 +11,10 @@
 ##### 6. 노드매니저들은 컨테이너에 새로운 JVM을 생성한 후 해당 애플리케이션을 실행한다. 애플리케이션이 종료되면 해당 애플리케이션마스터가 종료된다. 마지막으로 리소스매니저는 종료된 애플리케이션마스터에게 할당했던 리소스를 해제한다.
 
 ## 얀 단계별 동작 방식
-##### 위에서 얀의 전체적인 작업 흐름을 보았다. 하지만 실제로 각 컴포넌트 간에는 더 복잡한 상호작용이 발생한다. 
+##### 위에서 얀의 전체적인 작업 흐름을 보았다. 하지만 실제로 각 컴포넌트 간에는 더 복잡한 상호작용이 발생한다.  
 ### 1. 애플리케이션 실행 요청
-##### 아래 그림은 YarnClient를 구현한 클래스인 클라이언트가 얀 클러스터에 애플리케이션 실행을 요청했을 때 진행되는 과정을 나타낸다. ClientRMService는 리소스매니저의 내부 컴포넌트로 클라이언트가 호출하는 모든 RPC 호츨을 처리한다.
+##### 아래 그림은 YarnClient를 구현한 클래스인 클라이언트가 얀 클러스터에 애플리케이션 실행을 요청했을 때 진행되는 과정을 나타낸다. ClientRMService는 리소스매니저의 내부 컴포넌트로 클라이언트가 호출하는 모든 RPC 호출을 처리한다.
+##### 이 부분은 얀의 전체적인 작업흐름에서 1. 애플리케이션 실행요청에 해당한다.
 ![애플리케이션 실행 요청](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationExecutingRequest.png)
 
 #####  1. 클라이언트가 애플리케이션을 얀 클러스터에서 실행하려면 얀 클러스터에서 신규 애플리케이션ID를 발급받아야 한다. 클라이언트는 ClientRMService의 createNewApplication 메소드를 호출해 애플리케이션ID 발급을 요청한다. 이 부분은 [Myclient.java](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyClient.java#L185)에 다음과 같이 작성되어 있다.
@@ -50,3 +51,8 @@ ApplicationReport report = yarnClient.getApplicationReport(appId);
 ```
 
 ##### 5. 리소스매니저는 애플리케이션이 정상적으로 등록됐을 경우 ApplicationReport를 반환하다. ApplicationReport는 얀 클러스터에서 실행되는 애플리케이션의 통계 정보를 제공하며, 애플리케이션 ID, 이름, 사용자, 큐, 애플리케이션마스터 정보, 애플리케이션 구동 시간 등의 정보를 포함하고 있다. 반환된 ApplicationReport를 가지고 오류를 판단하는 부분은 [Myclient.java](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyClient.java#L382) 부터 정의 되어있다.
+
+
+### 2. 애플리케이션마스터 실행 요청
+##### 이 부분은 얀의 전체적인 작업흐름에서 2.애플리케이션마스터 실행요청에 해당한다.
+![애플리케이션마스터 실행요청](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterExecutingRequest.png)
