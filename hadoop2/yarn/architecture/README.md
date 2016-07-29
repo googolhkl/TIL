@@ -149,3 +149,11 @@ for(ContainerStatus status : response.getCompletedContainersStatuses())
 ##### 컨테이너에서 실행했던 애플리케이션들이 종료되면 애플리케이션마스터도 종료돼야 한다. 왜냐하면 애플리케이션마스터는 하나의 애플리케이션의 라이프 사이클을 관리하기 때문이다.
 ![애플리케이션마스터 종료](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterClosing.png)
 
+##### 1. 애플리케이션마스터의 클라이언트는 리소스매니저에게 애플리케이션마스터를 종료할 것을 요청한다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2afb2fa/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyApplicationMaster.java#L243)에 다음과 같이 작성되어 있다.
+
+```java
+amRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
+```
+
+##### 2. ApplicationMasterService는 해당 애플리케이션마스터를 리소스매니저에서 해제한다.
+##### 위 과정이 완료되면 정상 해제 결과가 설정된 FinishApplicationMasterResponse를 애플리케이션마스터에게 반환한다.
