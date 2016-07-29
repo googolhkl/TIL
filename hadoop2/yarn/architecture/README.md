@@ -54,5 +54,38 @@ ApplicationReport report = yarnClient.getApplicationReport(appId);
 
 
 ### 2. 애플리케이션마스터 실행 요청
+##### 애플리케이션이 실행되려면 애플리케이션의 라이프 사이클을 관리하는 애플리케이션마스터가 실행돼야 한다.
 ##### 이 부분은 얀의 전체적인 작업흐름에서 2.애플리케이션마스터 실행요청에 해당한다.
 ![애플리케이션마스터 실행요청](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterExecutingRequest.png)
+
+
+##### 1. 애플리케이션 목록을 관리하는 컴포넌트인 RMAppManager는 리소스매니저의 내부 스케줄러에게 애플리케이션 등록 및 애플리케이션마스터를 실행하기 위한 컨테이너를 요청한다. 
+##### 참고로 리소스매니저에서 실행되는 애플리케이션은 시도하는 횟수만큼 ApplicationAttemptId가 생성된다. 그리고 내부 스케줄러에 애플리케이션을 등록할 때 ApplicationAttemptId를 사용하게 된다.
+
+##### 2. ApplicationAttemptId를 애플리케이션이 사용하는 큐에 등록한다. 그리고 RMAppManager가 스케줄 등록 결과를 알 수 있게 RMAppAttemptEvennType.ATTEMPT_ADDED 이벤트를 발생시킨다.
+
+##### 3. RMAppManager는 스케줄러에게 ApplicationAttemptId에 대한 컨테이너 할당을 요청한다. 이 부분은 얀의 전체적인 작업흐름에서 3번(fork) 과정에 속한다.
+##### 4. 스케줄러는 ApplicationAttemptId에게 컨테이너를 할당한 후 RMAppManager가 애플리케이션마스터를 실행할 수 있게 RMContainerEventType.START를 발생시킨다.
+##### 5. 스케줄러의 응답을 받은 RMAppManager는 애플리케이션마스터를 실행하는 컴포넌트인 ApplicationMasterLauncher를 실행한다.
+##### 6. ApplicationMasterLauncher는 AMLauncher를 실행해 애플리케이션마스터를 실행한다. 
+##### 7. AMLauncher는 컨테이너 정보를 설정한 후 노드매니저에게 애플리케이션마스터 실행을 요청한다. 이때 파라미터로 ContainerLaunchContext를 이용한다. 얀 클러스터에서 실행되는 모든 애플리케이션은 컨테이너에서 실행되며, ContainerLaunchContext에 노드매니저가 컨테이너를 실행하는데 필요한 다음과 같은 정보가 저장돼 있다.
+##### - 컨테이너 ID
+##### - 컨테이너에 할당된 리소스 정보
+##### - 컨테이너 사용자 정보
+##### - 보안 정보
+##### - 컨테이너를 실행하는데 필요한 바이너리 파일, JAR 파일, XML 파일과 같은 로컬 파일 정보
+##### - 환경설정 정보
+##### - 컨테이너를 실행할 커맨드 라인
+##### 참고로 얀에서 맵리듀스를 실행할 경우 AMLauncher는 ContainerLaunchContext의 커맨드 라인을 다음과 같은 형태로 설정한다. 여기서 MRAppMaster는 맵리듀스 애플리케이션의 애플리케이션마스터 역할을 하는 클래스다.
+```
+$ JAVA_HOME/bin/java -Dlog4j.configuration=container-log4j.properties -Dyarn.app.container.log.dir=<LOG_DIR>
+-Dyarn.app.container.log.filesize=0
+-Dhadoop.root.logger=INFO,CLA
+-Xmx1024m
+org.apache.hadoop.mapreduce.v2.app.MRappMaster 1>
+<LOG_DIR>/stdout2><LOG_DIR>/stderr
+```
+
+##### 8. 노드매니저는 AMLauncher가 요청한 컨테이너를 실행한 후 결과가 저장돼 있는 StartContainerResponse를 반환한다.
+
+
