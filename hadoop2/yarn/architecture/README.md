@@ -145,3 +145,7 @@ for(ContainerStatus status : response.getCompletedContainersStatuses())
 ##### 4. ContainerManager는 애플리케이션마스터가 요청한 컨테이너의 실행 상태를 GetContainerStatusesResponse객체에 저장해서 반환한다.
 
 
+### 4. 애플리케이션마스터 종료
+##### 컨테이너에서 실행했던 애플리케이션들이 종료되면 애플리케이션마스터도 종료돼야 한다. 왜냐하면 애플리케이션마스터는 하나의 애플리케이션의 라이프 사이클을 관리하기 때문이다.
+![애플리케이션마스터 종료](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ApplicationMasterClosing.png)
+
