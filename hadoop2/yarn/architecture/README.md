@@ -124,7 +124,7 @@ AllocateResponse response = amRMClient.allocate(0);
 ##### 이제 애플리케이션마스터는 자신이 할당받은 컨테이너에서 애플리케이션을 실행해야 한다. 애플리케이션마스터는 이를 위해 노드매니저와 통신을 한다. 아래 그림은 이 설명의 동작을 보여준다.
 ![컨테이너 실행](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/ContainerExecuting.png)
 
-##### 1. 애플리케이션마스터의 클라이언트는 노드매니저에게 컨테이너를 실행할 것을 요청한다. 이때 StartContainersRequest를 호출 파라미터로 사용하는데, 이 객체에는 컨테이너를 실행하는데 필요한 로컬 리소스, 커맨드 라인, 보안 정보등이 저장돼있다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2afb2fa/hadoop2/yarn/application/com/hkl/hadoop/y    arn/examples/MyApplicationMaster.java#L218)에 다음과 같이 작성되어 있다.
+##### 1. 애플리케이션마스터의 클라이언트는 노드매니저에게 컨테이너를 실행할 것을 요청한다. 이때 StartContainersRequest를 호출 파라미터로 사용하는데, 이 객체에는 컨테이너를 실행하는데 필요한 로컬 리소스, 커맨드 라인, 보안 정보등이 저장돼있다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2afb2fa/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyApplicationMaster.java#L218)에 다음과 같이 작성되어 있다.
 
 ```java
 nmClient.startContainer(container, appContainer);
@@ -132,7 +132,7 @@ nmClient.startContainer(container, appContainer);
 
 ##### 2. 노드매니저의 ContainerManager가 startContainer 메소드를 처리한다. ContainerManager는 애플리케이션마스터가 요청한 대로 컨테이너를 실행한 후, 그 결과로 StartContainersResponse 객체를 반환한다. 이 객체에는 컨테이너의 실행 성공, 실패 건수가 저장돼 있다.
 
-##### 3. 컨테이너가 정상적으로 실행되고 나면 애플리케이션마스터는 각 컨테이너에서 애플리케이션들이 잘 동작하고 있는지 모니터링 해야 한다. 이를 위해 애플리케이션마스터는 getContainerStatus를 주기적으로 호출해 컨테이너의 실행 상태를 확인한다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2af    b2fa/hadoop2/yarn/application/com/hkl/hadoop/y    arn/examples/MyApplicationMaster.java#L220)에 다음과 같이 작성되어 있다.
+##### 3. 컨테이너가 정상적으로 실행되고 나면 애플리케이션마스터는 각 컨테이너에서 애플리케이션들이 잘 동작하고 있는지 모니터링 해야 한다. 이를 위해 애플리케이션마스터는 getContainerStatus를 주기적으로 호출해 컨테이너의 실행 상태를 확인한다. 이 부분은 [MyApplicationMaster.java](https://github.com/googolhkl/TIL/blob/a7290b5fde0d1c809c95ae47c32647dad2af    b2fa/hadoop2/yarn/application/com/hkl/hadoop/yarn/examples/MyApplicationMaster.java#L220)에 다음과 같이 작성되어 있다.
 
 ```java
 for(ContainerStatus status : response.getCompletedContainersStatuses())
