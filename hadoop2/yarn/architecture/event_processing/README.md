@@ -6,7 +6,7 @@
 ##### 맵리듀스는 잡트래커와 태스크트래커의 내부 이벤트를 멀티 쓰레드 방식으로 처리한다. 멀티 쓰레드 방식은 각 요청마다 하나의 쓰레드를 새롭게 생성하는데, 쓰레드가 많아질 경우 시스템에 많은 자원을 소모하게 된다.(그래도 프로세스보단 낫겠다..)
 
 ##### 얀은 맵리듀스와는 달리 비동기 방식으로 이벤트를 처리하며, 이를 지원하기 위한 비동기 디스패처를 제공한다. 다음은 비동기 디스패처의 동작과정을 나타낸다.
-![비동기 디스패처 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/event_processing/AsyncDispatch.png)
+![비동기 디스패처 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/event_processing/AsyncDispatcher.png)
 
 ##### 1. 클라이언트는 비동기 디스패처의 handle 메소드를 호출해 이벤트 처리를 요청한다. 비동기 디스패처는 요청받은 이벤트를 내부 큐인 eventQueue에 등록한다. 이때 클라이언트는 이벤트 처리를 대기하지 않고, 다른 작업을 처리할 수 있다. (I/O작업과 비슷하군!)
 ##### 2. 비동기 디스패처는 이벤트 요청을 처리하는 eventHandlingThread를 제공한다. eventHandlingThread는 싱글 쓰레드로 실행되며, eventQueue에 신규 이벤트가 있는지 계속해서 조회한다. (폴링방식이란 말인가??)
