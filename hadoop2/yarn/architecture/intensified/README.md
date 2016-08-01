@@ -4,4 +4,4 @@
 ## 1. 리소스 매니저
 ##### 리소스매니저는 전체 클러스터의 가용한 리소스를 스케줄링하고, 클러스터에서 실행되는 애플리케이션들에게 리소스를 중재한다. 그리고 노드매니저와 애플리케이션마스터를 제어하면서 애플리케이션들이 정상적으로 실행될 수 있게 도와준다. 리소스 매니저는 이러한 기능을 수행하기 위해 다양한 컴포넌트로 구성돼 있다. 다음은 리소스매니저의 컴포넌트 구성이다.
 
-![리소스매니저 컴포넌트](https://github.com/googolhkl/TIL/tree/master/hadoop2/yarn/architecture/intensified/ResourceManager.png
+![리소스매니저 컴포넌트](https://github.com/googolhkl/TIL/tree/master/hadoop2/yarn/architecture/intensified/ResourceManager.png)
