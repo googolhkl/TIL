@@ -6,7 +6,7 @@
 ##### 맵리듀스는 잡트래커와 태스크트래커의 내부 이벤트를 멀티 쓰레드 방식으로 처리한다. 멀티 쓰레드 방식은 각 요청마다 하나의 쓰레드를 새롭게 생성하는데, 쓰레드가 많아질 경우 시스템에 많은 자원을 소모하게 된다.(그래도 프로세스보단 낫겠다..)
 
 ##### 얀은 맵리듀스와는 달리 비동기 방식으로 이벤트를 처리하며, 이를 지원하기 위한 비동기 디스패처를 제공한다. 다음은 비동기 디스패처의 동작과정을 나타낸다.
-![비동기 디스패처 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/YarnWorkflow.png)
+![비동기 디스패처 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/event_processing/AsyncDispatch.png)
 
 ##### 1. 클라이언트는 비동기 디스패처의 handle 메소드를 호출해 이벤트 처리를 요청한다. 비동기 디스패처는 요청받은 이벤트를 내부 큐인 eventQueue에 등록한다. 이때 클라이언트는 이벤트 처리를 대기하지 않고, 다른 작업을 처리할 수 있다. (I/O작업과 비슷하군!)
 ##### 2. 비동기 디스패처는 이벤트 요청을 처리하는 eventHandlingThread를 제공한다. eventHandlingThread는 싱글 쓰레드로 실행되며, eventQueue에 신규 이벤트가 있는지 계속해서 조회한다. (폴링방식이란 말인가??)
@@ -37,7 +37,7 @@
 ##### 상태 변경 정보를 스택에 유지하고 있다. 변경 전의 상태 정보는 Enum 타입의 변수로 설정하고, 변경 후의 상태 정보는 이벤트 타입과 관련 메소드 정보를 이용해 StateMachine 객체를 생성한다. 참고로 Enum 변수는 하나만 설정할 수 있지만 변경 후 상태 정보는 여러 개의 StateMachine을 설정할 수 있다.
 
 ##### 마지막으로 스테이트머신 모델의 동작 과정을 알아보겠다. 다음은 RMNodeImpl의 상태가 REBOOTED로 변경됐을 때 처리 과정을 나타낸다.
-![스테이트머신 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/StateMachine.png)
+![스테이트머신 동작 과정](https://github.com/googolhkl/TIL/blob/master/hadoop2/yarn/architecture/event_processing/StateMachine.png)
 
 ##### 각 동작은 다음과 같다.
 ##### 1. ResourceTrackerService는 노드매니저가 하트비트를 전송하지 않으면 해당 노드매니저를 재부텅할 것을 요청한다. 이때 ResourceTrackerService는 비동기 디스패처에게 이벤트 타입이 RMNodeEventType.REBOOTING인 이벤트 처리를 요청한다.
