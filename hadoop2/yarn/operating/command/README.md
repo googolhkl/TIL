@@ -61,7 +61,7 @@ Most commands print help when invoked w/o parameters
 | 옵션 | 내용 | 예시 |
 | --- | --- | --- |
 | -list | 얀 클러스터에서 실행 중인 애플리케이션 목록을 출력한다. | bin/yarn application -list |
-| -appStates <상태> | -list 옵션과 함께 사용 가능한 옵션이다. 애플리케이션 목록을 출력할 때 특정 상태인 애플리케이션 목록만을 출력하게 한다. 사용가능한 상태는 다음과 같다. - ALL, NEW, NEW_SAVING, SUBMITTED, ACCEPTED, RUNNING< FINISHED, FAILED, KILLED 참고로 콤마 구분자로 상태를 여러개 지정할 수 있다. | bin/yarn application -list -appStates ACCEPTED,FAILED
+| -appStates <상태> | -list 옵션과 함께 사용 가능한 옵션이다. 애플리케이션 목록을 출력할 때 특정 상태인 애플리케이션 목록만을 출력하게 한다. 사용가능한 상태는 다음과 같다.__ ALL, NEW, NEW_SAVING, SUBMITTED, ACCEPTED, RUNNING< FINISHED, FAILED, KILLED__ 참고로 콤마 구분자로 상태를 여러개 지정할 수 있다. | bin/yarn application -list -appStates ACCEPTED,FAILED
 | -appTypes <타입> | -list 옵션과 함께 사용 가능한 옵션. 애플리케이션 목록을 출력할 때 특정 애플리케이션 타입에 해당하는 애플리케이션을 출력한다. 타입에는 출력하고자 하는 애플리케이션의 타입을 설정하면 된다. 참고로 콤마 구분자로 타입을 여러 개 지정할 수 있다. | bin/yarn application -list -appTypes MAPREDUCE 혹은 bin/yarn application -list -appTypes YARN
 | -kill <애플리케이션ID> | 특정 애플리케이션을 강제로 종료한다. 애플리케이션ID는 얀 웹화면이나 application -list에서 확인한다. | bin/yarn application -kill application_1409667559273_0004 |
 | -movetoqueue <애플리케이션ID> | 리소스매니저의 스케줄러는 여러 개의 큐로 구성할 수 있다. 이 옵션은 특정 애플리케이션을 스케줄러의 다른 큐로 이동시킬 수 있다. | bin/yarn application -movetoqueue application_1409667559273_0004  -queue anotherqueue |
@@ -75,6 +75,6 @@ Most commands print help when invoked w/o parameters
 | --- | --- | --- |
 | -list | 현재 실행 중인 노드 매니저 목록을 출력한다. | bin/yarn node -list |
 | -all | -list 옵션과 함께 사용한다. 실행 중인 노드매니저 외에 강제로 제거되거나 장애가 발생한 노드매니저도 함께 출력한다. | bin/yarn node -list -all |
-| -states <상태> | -list 옵션과 함께 사용한다. 특정 상태의 노드매니저만을 출력하게 한다.설정 가능한 상태는 다음과 같다. - NEW, RUNNING, UNHEALTHY, ECOMMISSIONED, LOST, REBOOTED 참고로 콤마 구분자로 상태를 여러 개 지정할 수 있다. | bin/yarn node -list -states RUNNING,UNHEALTHY |
+| -states <상태> | -list 옵션과 함께 사용한다. 특정 상태의 노드매니저만을 출력하게 한다.설정 가능한 상태는 다음과 같다.__ NEW, RUNNING, UNHEALTHY, ECOMMISSIONED, LOST, REBOOTED__ 참고로 콤마 구분자로 상태를 여러 개 지정할 수 있다. | bin/yarn node -list -states RUNNING,UNHEALTHY |
 | -status <노드매니저ID> | 특정 노드매니저의 상태를 출력한다. 노드매니저ID는 -list에서 출력된 node-Id를 사용한다. | bin/yarn node -status 127.0.0.1:63432 |
 
