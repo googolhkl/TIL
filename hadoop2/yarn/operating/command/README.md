@@ -117,6 +117,61 @@ Most commands print help when invoked w/o parameters
 <br />
 
 ## 2. 관리자 명령어
-##### 얀은 ㄷ음과 같은 관리자용 명령어를 제공한다.
+##### 얀은 다음과 같은 관리자용 명령어를 제공한다.
+<br />
+
+### resourcemanager
+##### 리소스매니저를 구동한다.
+
+```
+[hkl@googolhkl1 hadoop-2.6.0] ./bin/yarn resourcemanager
+```
+<br />
+
+### nodemanager
+##### 노드매니저를 구동한다.
+
+```
+[hkl@googolhkl1 hadoop-2.6.0] ./bin/yarn nodemanager
+```
+<br />
+
+### proxyserver
+##### 프록시 서버를 구동한다.
+
+```
+[hkl@googolhkl1 hadoop-2.6.0] ./bin/yarn proxyserver
+```
+<br />
+
+### timelineserver
+##### 하둡 2.6.0 버전부터 사용자에게 애플리케이션 실행 이력을 제공하기 위해 타임라인 서비스를 제공한다. 이 명령어는 타임라인 서비스를 위한 타임라인 서버를 실행하는 기능이다. 하지만 현재 버전에서는 타임라인 서버가 정상적으로 동작하지 않기 때문에(-_-) 향후 버전에서 운영하는 것이 좋다.
+
+```
+[hkl@googolhkl1 hadoop-2.6.0] ./bin/yarn timelineserver
+```
+<br />
+
+### rmadmin
+##### 리소스매니저를 관리하기 위한 다양한 옵션을 제공한다. 다음은 이 명령어가 지원하는 옵션이다.
+
+| 옵션 | 내용 | 예시 |
+| --- | --- | --- |
+| -refreshQueues | mapred-queues.xml을 리프레시한다. 이 파일에는 맵리듀스용 큐의 정보가 설정돼 있다. | bin/yarn rmadmin -refreshQueues |
+| -refreshNodes | 리소스매니저에서 노드매니저의 정보를 리프레시한다. | bin/yarn rmadmin -refreshNodes |
+| -refreshSuperUserGroupsConfiguration | 슈퍼유저(관리자) 프록시그룹 매핑 정보를 리프레시한다. | bin/yarn rmadmin -refreshSuperUserGroupsConfiguration | 
+| -refreshUserToGroupsMappings | 유저와 그룹 간의 매핑 정보를 리프레시한다. | bin/yarn rmadmin -refreshUserToGroupsMappings |
+| -refreshAdminAcls | 리소스매니저의 관리자용 ACL을 리프레시한다. | bin/yarn rmadmin -refreshAdminAcls |
+| -refreshServiceAcl | 서비스 레벨의 인증 정책 파일을 리프레시한다. | bin/yarn rmadmin -refreshServiceAcl |
+| -getGroups [계정] | 특정 계정의 그룹 정보를 출력한다. | bin/yarn rmadmin -getGroups hkl |
+<br />
+
+### daemonlog
+##### 노드매니저의 로그 출력 레벨을 관리한다. 다으은 이 명령어에서 사용 가능한 옵션이다.
+
+| 옵션 | 내용 | 예시 |
+| --- | --- | --- |
+| -getlevel | 특정 노드매니저에서 특정 클래스의 로그 레벨을 출력한다. 이때 **노드매니저의 포트는 반드시 웹 포트를 설정해야 한다.**참고로 bin/yarn node -list에서 출력된 Node-Http-Address를 사용하면 된다. | bin/yarn daemonlog -getlevel [노드매니저호스트:노드매니저웹포트] [클래스명]<br />bin/yarn daemonlog -getlevel 127.0.0.1:8042 NodeManager<br />bin/yarn daemonlog -getlevel 127.0.0.1:8042 AMRMClient |
+| -setlevel | 특정 노드매니저에서 특정 클래스의 로그 레벨을 강제로 설정한다. | bin/yarn daemonlog -getlevel [노드매니저호스트:노드매니저웹포트] [클래스명] [로그레벨]<br />bin/yarn daemonlog -getlevel 127.0.0.1:8042 NodeManager INFO<br />bin/yarn daemonlog -getlevel 127.0.0.1:8042 AMRMClient DEBUG |
 
 
