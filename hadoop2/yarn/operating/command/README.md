@@ -68,4 +68,13 @@ Most commands print help when invoked w/o parameters
 | -queue <큐 이름> | movetoqueue 옵션과 함께 사용한다. 이동시킬 큐의 이름을 설정한다. | 위와 동일 |
 | -status <애플리케이션ID> | 특정 애플리케이션의 상태를 출력한다. | bin/yarn application -status application_1409667559273_0004  
 
+### node
+##### 노드매니저 상태를 출력하는 명령어다.
+
+| 옵션 | 내용 | 예시 |
+| --- | --- | --- |
+| -list | 현재 실행 중인 노드 매니저 목록을 출력한다. | bin/yarn node -list |
+| -all | -list 옵션과 함께 사용한다. 실행 중인 노드매니저 외에 강제로 제거되거나 장애가 발생한 노드매니저도 함께 출력한다. | bin/yarn node -list -all |
+| -states <상태> | -list 옵션과 함께 사용한다. 특정 상태의 노드매니저만을 출력하게 한다.설정 가능한 상태는 다음과 같다. - NEW, RUNNING, UNHEALTHY, ECOMMISSIONED, LOST, REBOOTED 참고로 콤마 구분자로 상태를 여러 개 지정할 수 있다. | bin/yarn node -list -states RUNNING,UNHEALTHY |
+| -status <노드매니저ID> | 특정 노드매니저의 상태를 출력한다. 노드매니저ID는 -list에서 출력된 node-Id를 사용한다. | bin/yarn node -status 127.0.0.1:63432 |
 
