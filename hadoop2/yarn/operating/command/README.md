@@ -61,6 +61,4 @@ Most commands print help when invoked w/o parameters
 | 옵션 | 내용 | 예시 |
 | --- | --- | --- |
 | -list | 얀 클러스터에서 실행 중인 애플리케이션 목록을 출력한다. | bin/yarn application -list |
-| -appStates <상태> | -list 옵션과 함께 사용 가능한 옵션이다. 애플리케이션 목록을 출력할 때 특정 상태인 애플리케이션 목록만을 출력하게 한다. 사용가능한 상태는 다음과 같다.
-- ALL, NEW, NEW_SAVING, SUBMITTED, ACCEPTED, RUNNING, FINISHED, FAILED, KILLED 
-참고로 콤마 구분자로 해서 상태를 여러 개 지정할 수 있다. | bin/yarn application -list -appStates ACCEPTED,FAILED
+| -appStates <상태> | -list 옵션과 함께 사용 가능한 옵션이다. 애플리케이션 목록을 출력할 때 특정 상태인 애플리케이션 목록만을 출력하게 한다. 사용가능한 상태는 다음과 같다. - ALL, NEW, NEW_SAVING, SUBMITTED, ACCEPTED, RUNNING< FINISHED, FAILED, KILLED 참고로 콤마 구분자로 상태를 여러개 지정할 수 있다. | bin/yarn application -list -appStates ACCEPTED,FAILED
