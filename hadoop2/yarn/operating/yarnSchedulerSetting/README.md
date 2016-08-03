@@ -189,5 +189,22 @@
 	<value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler</value>
 </property>
 ```
+<br />
+
+### 얀 환경설정 파일 수정
+##### 페어 스케줄러를 실제로 적용하려면 다양한 설정을 변경해야 한다. 페어 스케줄러의 큐 설정은 별도 파일로 설정하지만 다른 속성들은 yarn-site.xml에 설정하면 된다. 다음표는 yarn-site.xml에서 설정할 수 있는 페어 스케줄러의 속성값이다.
+| 속성 | 내용 |
+| --- | --- |
+| yarn.scheduler.fair.allocation.file | 페어 스케줄러에서 사용하는 큐에 대한 설정 파일 경로를 나타낸다. 기본값은 fair-scheduler.xml 이다. |
+| yarn.scheduler.fair.user-as-default-queue | 이 속성값은 애플리케이션을 실행할 때 큐를 별도로 설정하지 않은 경우에 대처하기 위한 속성값이다. 이 속성값이 true로 설정돼 있다면 사용자 이름을 큐의 이름으로 사용하게 된다. 하지만 이 값이 false로 돼 있다면 큐를 설정하지 않은 애플리케이션은 무조건 default 큐로 할당된다. 참고로 이 속성의 기본값은 true로 설정돼 있다. |
+| yarn.scheduler.fair.preemption | 페어 스케줄은 선점 기능을 제공한다. 선점은 얀 클러스터의 자원을 공평하게 사용하지 못하고 있는 경우 자원을 과도하게 사용하는 컨테이너를 종료시키는 기능이다. 기본값은 false로 돼 있어서 선점 기능을 사용하지 않게 돼 있다. 참고로 현재 버전의 preemption 기능은 실험적인 기능으로, 완벽하게 동작하지 않을 수 있다. |
+| yarn.scheduler.fair.preemption.cluster-utilization-threshold | 선점 기능이 실행되는 임계치를 의미한다. 전체 리소스의 최대 사용 비율이 이 임계치에 도달하면 선점이 실행된다. 기본값은 0.8f이며 80%를 의미한다. |
+| yarn.scheduler.fair.sizebasedweight | 애플리케이션의 가중치를 애플리케이션의 크기로 측정하게 하는 값이다. 기본적으로 애플리케이션의 가중치는 애플리케이션의 우선순위 속성으로 측정된다. 하지만 이 속성을 true로 설정할 경우 애플리케이션이 필요한 메모리 용량이 많은 순서대로 가중치가 부여된다. 기본값은 false로 설정돼 있다. |
+| yarn.scheduler.fair.assignmultiple | 하나의 하트비트에 다중 컨테이너 할당을 허용할지를 설정한다. 기본값은 false다. |
+| yarn.scheduler.fair.max.assign | yarn.scheduler.fair.assignmultiple 속성을 true로 설정할 경우 하나의 하트비트에서 할당 가능한 컨테이너 개수다. 기본값은 -1이며, 무제한을 의미한다. |
+| yarn.scheduler.fair.allow-undeclared-pools | 이 속성이 true일 경우 새로운 큐는 애플리케이션의 실행 요청 시간에 생성될 수 있다. 왜냐하면 애플리케이션을 실행할 때 큐가 설정돼 있거나 yarn.scheduler.fair.user-as-default-queue 속성으로 사용자 이름이 큐로 설정되기 때문이다. 하지만 이 속성이 false일 경우 큐 설정 파일에 정의된 속성은 무시된다. 그래서 애플리케이션은 큐 설정 파일에 정의되지 않은 큐로 변경될 수 있다. 기본값은 true다. |
+<br />
+
+
 
 
