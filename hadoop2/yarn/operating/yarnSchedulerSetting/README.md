@@ -205,6 +205,53 @@
 | yarn.scheduler.fair.allow-undeclared-pools | 이 속성이 true일 경우 새로운 큐는 애플리케이션의 실행 요청 시간에 생성될 수 있다. 왜냐하면 애플리케이션을 실행할 때 큐가 설정돼 있거나 yarn.scheduler.fair.user-as-default-queue 속성으로 사용자 이름이 큐로 설정되기 때문이다. 하지만 이 속성이 false일 경우 큐 설정 파일에 정의된 속성은 무시된다. 그래서 애플리케이션은 큐 설정 파일에 정의되지 않은 큐로 변경될 수 있다. 기본값은 true다. |
 <br />
 
+### 큐 설정
+##### 큐 설정 파일에는 최소/최대 리소스, 최대 애플리케이션 실행 개수와 같은 큐의 기본 정보를 설정한다.
+##### 아래는 큐 설정 파일의 예이다.
+```xml
+<?xml version="1.0"?>
+<allocations>
+	<queue name="sample_queue">
+		<minResources>10000 mb,0vcores</minResources>
+		<maxResources>90000 mb,0vcores</maxResources>
+		<maxRunningApps>50</maxRunningApps>
+		<maxAMShare>0.1</maxAMShare>
+		<weight>2.0</weight>
+		<schedulingPolicy>fair<schedulingPolicy>
+		<queue name="sample_sub_queue">
+			<aclSubmitApps>charlie</aclSubmitApps>
+			<minResources>5000 mb,0vcores</minResources>
+		</queue>
+	</queue>
 
+	<queueMaxAMShareDefault>0.5</queueMaxAMShareDefault>
+
+	
+	<!-- 아래에 나오는 secondary_group_queue는 부모 큐이고 유저 큐는 이 큐의 자식으로 온다. -->
+	<queue name="secondary_group_queue" type="parent">
+	<weight>3.0</weight>
+	</queue>
+
+	<user name="sample_user">
+		<maxRunningApps>30</maxRunningApps>
+	</user>
+	<userMaxAppsDefault>5</userMaxAppsDefault>
+
+	<queuePlacementPolicy>
+		<rule name="specified" />
+		<rule name="primaryGroup" create="false" />
+		<rule name="nestedUserQueue">
+			<rule name="secondaryGroupExistingQueue" create="false" />
+		</rule>
+		<rule name="default" queue="sample_queue" />
+	</queuePlacementPolicy>
+</allocations>
+```
+<br />
+
+##### 모든 정보는 XML 엘리먼트로 정의되며, queue와 user의 경우에만 하위 엘리먼트로 속성을 정의한다. queue와 user엘리먼트는 특정 큐와 특정 사용자에 대한 설정이며, 나머지 엘리먼트는 전체 큐 및 사용자를 대상으로 하는 설정이다. 각 엘리먼트는 다음과 같은 내용을 나타낸다.
+
+* Queue : 각 큐에 대한 설정 정보다.
+ * minResources : 큐가 최소한으로 점유해야 하는 리소스 규모이며, "X mb, Y cores" 형식으로 표현한다. 예를 들어. 512MB, 1 코어를 최소로 공유하고 싶다면 "512mb,1vcores"로 설정한다.
 
 
