@@ -134,7 +134,7 @@
 	</property>
 
 	<property>
-		<name>yarn.resourcemanager.address.address.rm2</name>
+		<name>yarn.resourcemanager.admin.address.rm2</name>
 		<value>googolhkl2:8033</value>
 	</property>
 </configuration>
