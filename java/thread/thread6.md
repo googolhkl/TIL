@@ -2,7 +2,7 @@
 ##### 쓰레드는 경우에 따라서 실행 중인 쓰레드의 상태를 변경해야 한다. 멀티 쓰레드 프로그램을 만들기 위해서는 정교한 쓰레드 상태 제어가 필요한데, 상태 제어가 잘못되면 프로그램에 오류가 발생할 수 있다. 이래서 멀티 쓰레드 프로그래밍이 어렵다는 말이 나온다. 쓰레드 제어를 제대로 하기 위해서 쓰레드의 상태 변화를 가져오는 메소드을 파악하고 있어야 한다.
 ##### 아래 그림은 상태 변화를 가져오는 메소드의 종류를 보여준다.
 
-![쓰레드 상태](https://github.com/googolhkl/TIL/tree/master/java/thread/resource/ThreadState.png)
+![쓰레드 상태](https://github.com/googolhkl/TIL/blob/master/java/thread/resource/ThreadState.png)
 
 | 메소드 | 설명 |
 | --- | --- |
