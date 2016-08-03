@@ -30,3 +30,148 @@
 <br />
 
 ## 리소스매니저 HA 테스트
+##### 얀 클러스터에 리소스매니저 HA를 실제로 적용해보겠다. 이 테스트 주키퍼와 네임노드 HA로 구성된 하둡을 설치했다는 가정하게 진행한다.
+##### 가장먼저 googolhkl1 서버의 yarn-site.xml에 아래와 같이 작성을 한다.
+```xml
+<?xml version="1.0"?>
+<configuration>
+
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.ha.enabled</name>
+		<value>true</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.cluster-id</name>
+		<value>local-cluster</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.ha.rm-ids</name>
+		<value>rm1,rm2</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.ha.id</name>
+		<value>rm1</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.zk-address</name>
+		<value>googolhkl1:2181,googolhkl2:2181,googolhkl3:2181</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.recovery.enabled</name>
+		<value>true</value>
+	</property>
+
+	<!-- RM1 설정 -->
+	<property>
+		<name>yarn.resourcemanager.address.rm1</name>
+		<value>googolhkl1:8032</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.scheduler.address.rm1</name>
+		<value>googolhkl1:8030</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.webapp.https.address.rm1</name>
+		<value>googolhkl1:8090</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.webapp.address.rm1</name>
+		<value>googolhkl1:8088</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address.rm1</name>
+		<value>googolhkl1:8031</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.admin.address.rm1</name>
+		<value>googolhkl1:8033</value>
+	</property>
+
+	<!-- RM2 설정 -->
+	<property>
+		<name>yarn.resourcemanager.address.rm2</name>
+		<value>googolhkl2:8032</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.scheduler.address.rm2</name>
+		<value>googolhkl2:8030</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.webapp.https.address.rm2</name>
+		<value>googolhkl2:8090</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.webapp.address.rm2</name>
+		<value>googolhkl2:8088</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.resource-tracker.address.rm2</name>
+		<value>googolhkl2:8031</value>
+	</property>
+
+	<property>
+		<name>yarn.resourcemanager.address.address.rm2</name>
+		<value>googolhkl2:8033</value>
+	</property>
+</configuration>
+```
+
+##### 그리고 googolhkl2의 yarn-site.xml도 위의 예제처럼 작성한다. 단 googolhkl2의 `yarn.resourcemanager.ha.id`는 반드시 `rm2`로 설정한다.
+##### 환경설정이 완료되면 다음과 같이 얀 클러스터를 재구동한다.
+
+```
+[hkl@googolhkl1 hadoop-2.6.0]$ sbin/stop-yarn.sh
+[hkl@googolhkl1 hadoop-2.6.0]$ sbin/start-yarn.sh
+```
+##### 이때 리소스매니저의 로그파일(`$HADOOP_HOME/logs/yarn-hkl-resourcemanager-googolhkl1.log`)을 보면 다음과 같이 액티브 상태로 갱신됐다는 AuditLog가 출력된다.
+
+```
+INFO org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger: USER=hkl
+	OPERATION=transitionToActive TARGET=RMHAProtocolService Result=SUCCESS
+```
+##### 하지만 아직 스탠드바이 리소스매니저는 구동돼 있지 않다. 왜냐하면 앞서 설명한 대로 쉘 스크립트에 리소스매니저 HA와 관련된 로직이 들어있지 않기 때문이다. 스탠드바이 리소스매니저를 실행하기 위해 googolhkl2 서버에 접속해 다음과 같이 리소스매니저를 실행한다.
+
+```
+[hkl@googolhkl2 hadoop-2.6.0]$ sbin/yarn-daemon.sh start resourcemanager
+```
+
+##### 스탠드바이 리소스매니저가 실행되면 리소스매니저의 로그파일에는 다음과 같이 스탠드바이 상태로 갱신됐다는 AuditLog가 출력된다.
+
+```
+INFO resourcemanager.ResourceManager: Already in standby state
+INFO resourcemanager.RMAuditLogger: USER=hkl OPERATION=transitionToStandby
+	TARGET=RMHAProtocolService RESULT=SUCCESS
+```
+
+##### 이런 장애가 발생했을 때 스탠드바이 리소스매니저가 액티브로 전환되는지 확인해보겠다.
+##### googolhkl1 서버에 접속해 리소스매니저의 프로세스아이디를 조회한 후 강제종료 한다.
+
+```
+$ kill -9 프로세스아이디
+```
+
+##### 마지막으로 googolhkl2의 리소스매니저의 로그파일을 보면 액티브 상태로 전환된 것을 확인할 수 있다.
