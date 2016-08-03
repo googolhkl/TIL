@@ -5,7 +5,7 @@
 ![쓰레드 상태](https://github.com/googolhkl/TIL/blob/master/java/thread/resource/ThreadState.png)
 
 | 메소드 | 설명 |
-| -------- | --- |
+| ------------------------------------------------------- | --- |
 | interrupt() | 일시 정지 상태의 쓰레드에서 InterruptedException 예외를 발생시켜, 예외 처리 코드(catch)에서 실행 대기 상태로 가거나 종료 상태로 갈 수 있도록 한다. |
 | notify()<br />notifyAll() | 동기화 블록 내에서 wait() 메소드에 의해 일시 정지 상태에 있는 쓰네드를 실행 대기 상태로 만든다. | 
 | resume() | suspend() 메소드에 의해 일시 정지 상태에 있는 쓰ㄴ레드를 실행 대기 상태로 만든다.<br /> - Deprecated (대신 notify(), notifyAll() 사용) |
