@@ -68,7 +68,7 @@
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
 
-<!-- common -->
+<!-- 공통 설정 -->
 	<!-- 얀 클러스터에서 실행할 수 있는 최대 애플리케이션 개수 -->
 	<property>
 		<name>yarn.scheduler.capacity.maximum-applications</name>
@@ -99,8 +99,8 @@
 		<value>40</value>
 	</property>
 
-<!-- root queue-->
-	<!-- 큐가 전체 컨테이너에서 사용할수 있는 비율을 80% -->
+<!-- root 큐 -->
+	<!-- default 큐가 전체 컨테이너에서 사용할수 있는 비율을 80%로 설정-->
 	<property>
 		<name>yarn.scheduler.capacity.root.default.capacity</name>
 		<value>80</value>
@@ -112,15 +112,66 @@
 		<value>1</value>
 	</property>
 
-	<!-- 큐에서 사용할 수 있는 최대 컨테이너 비율은 90% -->
+	<!-- default 큐에서 사용할 수 있는 최대 컨테이너 비율은 90% -->
 	<property>
 		<name>yarn.scheduler.capacity.root.default.maximum-capacity</name>
 		<value>90</value>
 	</property>
 
+	<!-- default큐를 RUNNING 상태로 만든다 -->
 	<property>
 		<name>yarn.scheduler.capacity.root.default.state</name>
 		<value>RUNNING</value>
 	</property>
+
+	<!-- 모든 사용자와 그룹이 애플리케이션을 등록할 수 있다. -->
+	<property>
+		<name>yarn.scheduler.capacity.root.default.acl_submit_applications</name>
+		<value>*</value>
+	</property>
+
+	<!-- 모든 사용자와 그룹이 애플리케이션을 제어할 수 있다 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.default.acl_administer_queue</name>
+		<value>*</value>
+	</property>
+
+<!-- test 큐 -->
+	<!-- test 큐가 전체 컨테이너에서 사용할 수 있는 비율을 20%로 설정 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.capacity</name>
+		<value>20</value>
+	</property>
+
+	<!-- 하나의 사용자가 추가로 획득할 수 있는 컨테이너수는 1개 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.user-limit-factor</name>
+		<value>1</value>
+	</property>
+
+	<!-- test 큐에서 사용할 수 있는 최대 컨테이너 비율은 30% -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.maximum-capacity</name>
+		<value>30</value>
+	</property>
+
+	<!-- test큐를 RUNNING 상태로 만든다 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.state</name>
+		<value>RUNNING</value>
+	</property>
+
+	<!-- 모든 사용자와 그룹이 애플리케이션을 등록할 수 있다 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.acl_submit_applications</name>
+		<value>*<value>
+	</property>
+
+	<!-- 모든 사용자와 그룹이 애플리케이션을 제어할 수 있다 -->
+	<property>
+		<name>yarn.scheduler.capacity.root.test.acl_administer_queue</name>
+		<value>*</value>
+	</property>
+</configuration>
 	
 ```
