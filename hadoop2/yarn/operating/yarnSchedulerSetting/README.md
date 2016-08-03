@@ -281,8 +281,43 @@
 
 ### 페어 스케줄러 적용
 ##### 이번 단계에서 페어 스케줄러에 세 개의 큐를 등록해보겠다. 아래 예제에서는 default, service, test라는 세 개의 큐를 등록한다. 참고로 페어 스케줄러는 root의 default 큐를 기본으로 등록하며, 여기서 등록한 default 큐는 이 큐를 오버라이드한다.
+##### 아래 예제는 `HADOOP_HOME/etc/hadoop/fair-scheduler.xml` 파일로 작성한 후 얀 클러스터를 재구동한다.
 
 ```xml
+<?xml version="1.0"?>
+
+<allocations>
+	<user name="hkl">
+		<maxRunningApps>1000</maxRunningApps>
+	</user>
+
+	<userMaxAppsDefault>1000</userMaxAppsDefault>
+	<queue name="default">
+		<minResources>1024 mb, 1 vcores</minResources>
+		<maxResources>5120 mb, 4 vcores</maxResources>
+		<schedulingPolicy>fair</schedulingPolicy>
+		<weight>0.25</weight>
+		<minSharePreemptionTimeout>2</minSharePreemptionTimeout>
+	</queue>
+
+	<queue name="test">
+		<minResources>1024 mb, 1 vcores</minResources>
+		<maxResources>5120 mb, 4 vcores</maxResources>
+		<schedulingPolicy>fair</schedulingPolicy>
+		<weight>0.25</weight>
+		<minSharePreemptionTimeout>2</minSharePreemptionTimeout>
+	</queue>
+
+	<queue name="service">
+		<minResources>1024 mb, 1 vcores</minResources>
+		<maxResources>8192 mb, 10 vcores</maxResources>
+		<weight>0.5</weight>
+		<schedulingPolicy>fair</schedulingPolicy>
+		<minSharePreemptionTimeout>2</minSharePreemptionTimeout>
+	</queue>
+</allocations>
 ```
+
+##### 얀의 웹 인터페이스 (http://호스트(googolhkl1):8088/cluster/scheduler)에 접속하면 확인할 수 있다.
 
 
