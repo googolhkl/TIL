@@ -61,7 +61,7 @@
 
 ### 커패시티 스케줄러 적용
 ##### 이번에는 커패시티 스케줄러에 두 개의 큐를 등록하고, 각 큐의 리소스 비율과 ACL을 설정해 보겠다. 아래 예제에서는 default와 test라는 두개의 큐를 등록한다.
-##### `HADOOP_HOME/etc/hadoop/capacity-scheduler.xml` 파일에 다음과 같이 적어주고 얀 클러스터를 재구동한다.
+##### `HADOOP_HOME/etc/hadoop/capacity-scheduler.xml` 파일에 다음과 같이 적어주고 얀 클러스터를 재구동한다.(참고로 googolhkl1서버의 파일만 변경해 주면 된다)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -164,7 +164,7 @@
 	<!-- 모든 사용자와 그룹이 애플리케이션을 등록할 수 있다 -->
 	<property>
 		<name>yarn.scheduler.capacity.root.test.acl_submit_applications</name>
-		<value>*<value>
+		<value>*</value>
 	</property>
 
 	<!-- 모든 사용자와 그룹이 애플리케이션을 제어할 수 있다 -->
@@ -173,5 +173,21 @@
 		<value>*</value>
 	</property>
 </configuration>
-	
 ```
+
+##### 이제 웹 인터페이스(http://호스트(googolhkl1):8088/cluster/scheduler)에 접속하면 root큐와 default,test 큐가 등록된 것을 확인할 수 있다. ~무슨 이유인지 모르겠지만 스크린샷이 안찍힌다..~
+<br />
+
+##페어 스케줄러
+##### 페어 스케줄러도 커패시티 스케줄러처럼 기존 맵리듀스에서 사용하던 스케줄러다. 맵리듀스의 페어 스케줄러는 풀(Pool) 단위로 태스크 슬롯을 관리했다. 얀의 페어 스케졸러는 기존의 풀을 큐로 명칭만 변경했을 뿐 내부 방식은 풀 관리 방식과 동일하게 동작한다.
+
+### 기본 설정
+##### 페어 스케줄러를 적용하려면 얀의 스케줄러를 커패시티 스케줄러에서 페어 스케줄러로 변경해야 한다. `yarn-site.xml`을 다음과 같이 작성한다.
+```xml
+<property>
+	<name>yarn.resourcemanager.scheduler.class</name>
+	<value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler</value>
+</property>
+```
+
+
