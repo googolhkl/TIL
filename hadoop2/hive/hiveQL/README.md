@@ -91,3 +91,100 @@ ROW FORMAT DELIMITED
 ##### `CREATE TABLE 테이블명(칼럼명 칼럼_타입, ...)` 과 같은 방식으로 테이블을 생성하며, 각 칼럼은 콤마로 구분한다. 위 예제에서는 `LateAircraftDelay STRING)` 까지만 선언해도 테이블이 생성되며, 이후에 있는 구문은 테이블에 대한 부가적인 정보를 설정하는 부분이다.
 ##### `COMMENT '데이터는 ... 데이터이다. '` 절은 테이블의 설명을 참고용으로 등록하는 부분이다.
 ##### `PARTITIONED BY (delayYear INT)` 절은 테이블의 파티션을 설정하는 부분이다. 하이브는 쿼리문의 수행 속도를 향상시키기 위해 파티션을 설정할 수 있다. 파티션을 설정하면 해당 테이블의 데이터를 파티션별로 디렉토리를 생성해서 저장하게 된다. 실제로 이 테이블의 데이터를 업로드한 후 HDFS 디렉토리를 조회하면 파티션키인 delayYear별로 디렉토리가 생성돼 있다. 참고로 파티션키는 해당 테이블의 새로운 칼럼으로 추가된다.
+##### `ROW FORMAT` 절은 해당 테이블 내의 데이터가 어떠한 형식으로 저장되는지 설정한다. 이 쿼리문은 필드를 콤마 기준으로 구분하고, 행과 행은 \n 값으로 구분한다.
+##### 마지막으로 `STORED AS` 절은 데이터 저장 파일 포맷을 의미한다. 하이브는 텍스트 파일을 위한 `TEXTFILE`과 `SEQUENCEFILE`을 지원한다.
+
+##### airline_delay 테이블을 생성하고 나면 다음과 같이 메타스토어 데이터베이스에 저장된 테이블목록을 조회한다.
+
+```
+hive> SHOW TABLES;
+OK
+tab_name
+airline_delay
+Time taken: 0.164 seconds, Fetched: 1 row(s)
+
+```
+
+##### 참고로 테이블을 생성할 때 `CREATE`문 뒤에 `EXTERNAL` 키워드를 추가할 수 있다. `EXTERNAL` 키워드로 생성하는 테이블은 외부 테이블이라고 한다. 외부 테이블은 `hive.metastore.warehouse.dir` 속성이 가리키는 디렉토리에 저장하지 않고, 테이블 생성 시 설정한 경로로 데이터를 저장한다. 사용자가 실수로 테이블을 `DROP` 했더라도 데이터가 보존된다는 장점이 있다.
+##### 참고로 위에서 작성했던 예제는 아래와 같이 외부 테이블을 생성할 수 있다. 기존 코드와의 차이점은 `CREATE`문 뒤에 `EXTERNAL`이 추가되고 마지막 줄에 `LOCATION`이라는 키워드 뒤에 데이터를 저장할 경로가 설정된다는 것이다.
+
+```
+CREATE EXTERNAL TABLE airline_delay(Year INT, Month INT,
+		DayofMonth INT, DayOfWeek INT,
+		DepTime INT, CRSDepTime INT,
+		ArrTime INT, CRSArrTime INT,
+		UniqueCarrier STRING, FlightNum INT,
+		TailNum STRING, ActualElapsedTime INT,
+		CRSElapsedTime INT, AirTime INT,
+		ArrDelay INT, DepDelay INT,
+		Origin STRING, Dest STRING,
+		Distance INT, TaxiIN INT,
+		TaxiOut INT, Cancelled INT,
+		CancellationCode STRING
+		COMMENT 'A = carrier, B = weather, C = NAS, D = security',
+		Diverted INT COMMENT '1 = yes, 0 = no',
+		CarrierDelay STRING, WeatherDelay STRING,
+		NASDelay STRING, SecurityDelay STRING,
+		LateAircraftDelay STRING)
+COMMENT '데이터는 1987년 부터 2008년까지 미국의 모든 비행기사의 도착,출력의 관한 데이터이다. '
+PARTITIONED BY (delayYear INT)
+ROW FORMAT DELIMITED
+	FIELDS TERMINATED BY ','
+	LINES TERMINATED BY '\n'
+	STORED AS TEXTFILE
+LOCATION '/usr/hkl/airline_delay';
+```
+
+##### 이번에는 `airline_delay` 테이블의 칼럼이 정상적으로 구성돼 있는지 `DESCRIBE` 명령어를 이용해 확인해 보겠다. `CREATE TABLE(..)` 내에 있는  29개의 칼럼과 파티션 칼럼인 delayYear이 모두 출력된다.
+
+```
+hive> DESCRIBE airline_delay;
+OK
+col_name	data_type	comment
+year                	int                 	                    
+month               	int                 	                    
+dayofmonth          	int                 	                    
+dayofweek           	int                 	                    
+deptime             	int                 	                    
+crsdeptime          	int                 	                    
+arrtime             	int                 	                    
+crsarrtime          	int                 	                    
+uniquecarrier       	string              	                    
+flightnum           	int                 	                    
+tailnum             	string              	                    
+actualelapsedtime   	int                 	                    
+crselapsedtime      	int                 	                    
+airtime             	int                 	                    
+arrdelay            	int                 	                    
+depdelay            	int                 	                    
+origin              	string              	                    
+dest                	string              	                    
+distance            	int                 	                    
+taxiin              	int                 	                    
+taxiout             	int                 	                    
+cancelled           	int                 	                    
+cancellationcode    	string              	A = carrier, B = weather, C = NAS, D = security
+diverted            	int                 	1 = yes, 0 = no     
+carrierdelay        	string              	                    
+weatherdelay        	string              	                    
+nasdelay            	string              	                    
+securitydelay       	string              	                    
+lateaircraftdelay   	string              	                    
+delayyear           	int                 	                    
+	 	 
+# Partition Information	 	 
+# col_name            	data_type           	comment             
+	 	 
+delayyear           	int                 	                    
+Time taken: 5.107 seconds, Fetched: 35 row(s)
+
+```
+
+##### 이미 생성된 테이블은 `ALTER TABLE`을 이용해 수정할 수 있다. 예를 들어, 테이블 이름은 `ALTER TABLE`에 `RENAME` 옵션을 설정해 변경할 수 있다.
+> ALTER TABLE airline_delay RENAME TO delay_statics;
+
+##### 기존의 테이블의 칼럼을 추가할 때도 다음과 같이 `ADD COLUMNS` 옵션을 설정하면 된다. 여러 개의 칼럼을 추가할 경우 콤마로 구분해서 입력한다.
+> ALTER TABLE delay_statics ADD COLUMNS (delayMonth STRING);
+
+##### 테이블을 삭제할 때는 `DROP TABLE`을 이용하면 된다. 이 경우 메타스토어 데이터베이스에 저장된 테이블과 HDFS에 저장된 데이터가 모두 삭제된다. `DROP TABLE`을 실행할 때 실행 여부를 묻지 않으므로 중요한 테이블이 삭제되지 않도록 주의해야 한다. 참고로 `EXTERNAL` 키워드를 이용해 외부 테이블을 생성했다면 데이터는 남아 있고 메타데이터만 삭제된다.
+> DROP TABLE delay_statics;
