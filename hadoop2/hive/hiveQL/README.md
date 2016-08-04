@@ -43,3 +43,51 @@ hkl@googolhkl1:~/airlineData$ ls
 1987.csv  1989.csv  1991.csv  1993.csv  1995.csv  1997.csv  1999.csv  2001.csv  2003.csv  2005.csv  2007.csv  download.sh
 1988.csv  1990.csv  1992.csv  1994.csv  1996.csv  1998.csv  2000.csv  2002.csv  2004.csv  2006.csv  2008.csv
 ```
+<br />
+
+## 1. 테이블 생성
+##### 하둡은 `HDFS`에 저장된 파일에 직접 접근해서 처리하지만 하이브는 메타스토어에 저장된 테이블을 분석한다. 데이터를 조회하기 전에 먼저 테이블을 생성해야 한다. 아래와 같이 `CREATE TABLE`을 이용해 `airline_delay` 테이블을 생성한다. SQL문의 `CREATE TABLE`과 매우 유사하게 느껴 질 것이다.
+
+```
+CREATE TABLE airline_delay(Year INT, Month INT,
+		DayofMonth INT, DayOfWeek INT,
+		DepTime INT, CRSDepTime INT,
+		ArrTime INT, CRSArrTime INT,
+		UniqueCarrier STRING, FlightNum INT,
+		TailNum STRING, ActualElapsedTime INT,
+		CRSElapsedTime INT, AirTime INT,
+		ArrDelay INT, DepDelay INT,
+		Origin STRING, Dest STRING,
+		Distance INT, TaxiIN INT,
+		TaxiOut INT, Cancelled INT,
+		CancellationCode STRING
+		COMMENT 'A = carrier, B = weather, C = NAS, D = security',
+		Diverted INT COMMENT '1 = yes, 0 = no',
+		CarrierDelay STRING, WeatherDelay STRING,
+		NASDelay STRING, SecurityDelay STRING,
+		LateAircraftDelay STRING)
+COMMENT '데이터는 1987년 부터 2008년까지 미국의 모든 비행기사의 도착,출력의 관한 데이터이다. '
+PARTITIONED BY (delayYear INT)
+ROW FORMAT DELIMITED
+	FIELDS TERMINATED BY ','
+	LINES TERMINATED BY '\n'
+	STORED AS TEXTFILE;
+```
+
+##### 이 쿼리문은 미국 항공 운항 지연 데이터의 양식과 동일하게 29개의 칼럼을 정의한다. 하이브QL의 칼럼 타입은 아래와 표와 같고, airline_delay 테이블에서는 INT와 STRING 타입만 사용했다.
+
+| 타입 | 내용 |
+| --- | --- |
+| TINYINT | 1바이트 정수 |
+| SMALLINT | 2바이트 정수 |
+| INT | 4바이트 정수 |
+| BIGINT | 8바이트 정수 |
+| BOOLEAN | TRUE/FALSE |
+| FLOAT | 단정밀도 부동 소수점 |
+| DOUBLE | 배정밀도 부동 소수점 |
+| STRING | 문자열 |
+<br />
+
+##### `CREATE TABLE 테이블명(칼럼명 칼럼_타입, ...)` 과 같은 방식으로 테이블을 생성하며, 각 칼럼은 콤마로 구분한다. 위 예제에서는 `LateAircraftDelay STRING)` 까지만 선언해도 테이블이 생성되며, 이후에 있는 구문은 테이블에 대한 부가적인 정보를 설정하는 부분이다.
+##### `COMMENT '데이터는 ... 데이터이다. '` 절은 테이블의 설명을 참고용으로 등록하는 부분이다.
+##### `PARTITIONED BY (delayYear INT)` 절은 테이블의 파티션을 설정하는 부분이다. 하이브는 쿼리문의 수행 속도를 향상시키기 위해 파티션을 설정할 수 있다. 파티션을 설정하면 해당 테이블의 데이터를 파티션별로 디렉토리를 생성해서 저장하게 된다. 실제로 이 테이블의 데이터를 업로드한 후 HDFS 디렉토리를 조회하면 파티션키인 delayYear별로 디렉토리가 생성돼 있다. 참고로 파티션키는 해당 테이블의 새로운 칼럼으로 추가된다.
