@@ -188,3 +188,40 @@ Time taken: 5.107 seconds, Fetched: 35 row(s)
 
 ##### 테이블을 삭제할 때는 `DROP TABLE`을 이용하면 된다. 이 경우 메타스토어 데이터베이스에 저장된 테이블과 HDFS에 저장된 데이터가 모두 삭제된다. `DROP TABLE`을 실행할 때 실행 여부를 묻지 않으므로 중요한 테이블이 삭제되지 않도록 주의해야 한다. 참고로 `EXTERNAL` 키워드를 이용해 외부 테이블을 생성했다면 데이터는 남아 있고 메타데이터만 삭제된다.
 > DROP TABLE delay_statics;
+
+## 2. 데이터 업로드
+##### 여기서는 앞서 생성한 airline_delay 테이블에 데이터를 업로드하겠다. 하이브는 로컬 파일 시스템에 있는 데이터와 HDFS에 저장된 데이터를 모두 업로드할 수 있다. 여기서는 로컬 파일 시스템에 있는 파일을 업로드하겠다.
+
+##### 하이브 CLI에서 다음과 같이 `LOAD DATA`를 입력한다. `OVERWRITE INTO`절은 중복된 데이터가 있어도 무시하고 입력한다는 의미다. 그리고 `PARTITION`절은 파티션 키인 `delayYear`값을 2008로 설정해 데이터를 입력하는 설정이다. 참고로 테이블에는 파티션을 설정했는데, 테이블을 등록할 때 `PARTITION` 절을 선언하지 않으면 `LOAD DATA` 실행 시 오류가 발생한다.
+
+```
+hive> LOAD DATA LOCAL INPATH '/home/hkl/airlineData/2008.csv'
+    > OVERWRITE INTO TABLE airline_delay
+    > PARTITION (delayYear='2008');
+Loading data to table default.airline_delay partition (delayyear=2008)
+Partition default.airline_delay{delayyear=2008} stats: [numFiles=1, numRows=0, totalSize=689413044, rawDataSize=0]
+OK
+Time taken: 63.498 seconds
+```
+
+##### `LOAD DATA`가 실행되면 아래와 같은 `SELECT` 쿼리문을 실행해 데이터가 정상적으로 등록댔는지 확인한다. `SELECT` 절의 기본 문법은 RDBMS의 SQL 문법과 유사하며, MySQL처럼 `LIMIT`을 이용해 상위 10개의 데이터만 조회가능하다.
+
+```
+hive> SELECT year, month, deptime, arrtime, uniquecarrier, flightnum
+    > FROM airline_delay
+    > WHERE delayYear = '2008'
+    > LIMIT 10;
+OK
+year	month	deptime	arrtime	uniquecarrier	flightnum
+2008	1	2003	2211	WN	335
+2008	1	754	1002	WN	3231
+2008	1	628	804	WN	448
+2008	1	926	1054	WN	1746
+2008	1	1829	1959	WN	3920
+2008	1	1940	2121	WN	378
+2008	1	1937	2037	WN	509
+2008	1	1039	1132	WN	535
+2008	1	617	652	WN	11
+2008	1	1620	1639	WN	810
+Time taken: 0.937 seconds, Fetched: 10 row(s)
+```
