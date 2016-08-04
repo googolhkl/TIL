@@ -181,13 +181,17 @@ Time taken: 5.107 seconds, Fetched: 35 row(s)
 ```
 
 ##### 이미 생성된 테이블은 `ALTER TABLE`을 이용해 수정할 수 있다. 예를 들어, 테이블 이름은 `ALTER TABLE`에 `RENAME` 옵션을 설정해 변경할 수 있다.
+
 > ALTER TABLE airline_delay RENAME TO delay_statics;
 
 ##### 기존의 테이블의 칼럼을 추가할 때도 다음과 같이 `ADD COLUMNS` 옵션을 설정하면 된다. 여러 개의 칼럼을 추가할 경우 콤마로 구분해서 입력한다.
+
 > ALTER TABLE delay_statics ADD COLUMNS (delayMonth STRING);
 
 ##### 테이블을 삭제할 때는 `DROP TABLE`을 이용하면 된다. 이 경우 메타스토어 데이터베이스에 저장된 테이블과 HDFS에 저장된 데이터가 모두 삭제된다. `DROP TABLE`을 실행할 때 실행 여부를 묻지 않으므로 중요한 테이블이 삭제되지 않도록 주의해야 한다. 참고로 `EXTERNAL` 키워드를 이용해 외부 테이블을 생성했다면 데이터는 남아 있고 메타데이터만 삭제된다.
+
 > DROP TABLE delay_statics;
+
 <br />
 <br />
 
