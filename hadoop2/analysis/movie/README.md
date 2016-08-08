@@ -1,4 +1,4 @@
-# 정보 
+# 데이터 정보 
 ##### 영화 정보는 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)에서 다운로드할 수 있다. 
 ##### 영화 데이터는 아래의 명령어로 다운로드 한다.
 ```
@@ -58,3 +58,13 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 
 ##### imdbId는 `http://www.imdb.com` 사이트에서 제공하는 영화의 링크이다. 예를들어 토이스토리의 링크는 [http://www.imdb.com/title/tt0114709](http://www.imdb.com/title/tt0114709)에서 확인할 수 있다.
 ##### tmdbId는 `http://www.themoviedb.org` 사이트에서 제공하는 영화의 링크이다. 예를들어 토이스토리의 링크는 [http://www.themoviedb.org/movie/862](http://www.themoviedb.org/movie/862)에서 확인할 수 있다.
+
+# 프로젝트 설명
+## tag_rating
+##### 이 맵리듀스는 ratings.csv와 tags.csv를 조인한 결과이다.
+##### 조인결과 포맷은 다음과 같다.
+| userID_movieID | userID | movieID | tag | timestamp | rating |
+| --- | --- | --- | --- | --- | --- | --- |
+
+##### 다음은 출력 데이터의 예다.
+> 100028_2571     ,100028,2571,kung fu,1345178041,4.5
