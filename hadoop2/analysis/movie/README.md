@@ -68,3 +68,12 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 
 ##### 다음은 출력 데이터의 예다.
 > 100028_2571     ,100028,2571,kung fu,1345178041,4.5
+
+## movie_tag_rating
+##### 이 맵리듀스는 ratings.csv와 tags.csv를 조인한 tag_rating.csv와 movies.csv를 조인한 결과이다.
+##### 조인결과 포맷은 다음과 같다.
+| movieId | userID_movieID | userID | movieID | tag | timestamp | rating | title | genres |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+##### 다음은 출력 데이터의 예다.
+
