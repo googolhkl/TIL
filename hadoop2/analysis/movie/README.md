@@ -76,4 +76,6 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ##### 다음은 출력 데이터의 예다.
+> 1,75420_1,75420,1,adventure,1440326829,3.5,Toy Story (1995),Adventure|Animation|Children|Comedy|Fantasy
+##### 영화 번호 1인 토이스토리 영화는 장르를 `모험`으로 분류했고, 별점은 3.5개, 유저가 나눈 느낌은 모험|애니메이션|어린이|코미디|판타지로 나눴다.
 
