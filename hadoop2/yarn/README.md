@@ -51,6 +51,7 @@ $ mvn
 ##### Name 밑쪽에 Dependencies 탭에 들어가 오른쪽에 초록색 [+] 버튼을 클릭한다.
 ##### JARs or directories... 를 클릭한다.
 ##### 경로에 /home/hkl/hadoop-2.6.0/share/hadoop 을 적고 [OK] 버튼을 누른다
+##### 또 /home/hkl/hadoop-2.6.0/share/hadoop/모든 폴더를 추가해줍니다.
 
 
 ## 2. 이클립스와 연동
