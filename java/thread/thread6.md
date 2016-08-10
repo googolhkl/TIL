@@ -169,3 +169,160 @@ class ThreadB extends Thread
 <br />
 
 ## join() - 다른 쓰레드의 종료를 기다림
+##### 쓰레드는 다른 쓰레드와 독립적으로 실행하는 것이 기본이지만 다른 쓰레드가 종료될 때 까지 기다렸다가 실행해야 하는 경우가 발생할 수 있다. 예를 들어 계산 작업을 하는 쓰레드가 모든 계산을 마쳤을 때 그 결과값을 받아 이용하는 경우가 이에 해당한다.
+##### 이런 경우를 위해 Thread는 join() 메소드를 제공하고 있다.
+##### 아래는 1~100까지 계산하는 쓰레드와 그 결과를 받아서 출력하는 메인 쓰레드의 예제다.
+
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        SumThread sumThread = new SumThread();
+        sumThread.start(); // sumThread 시작
+
+        try
+        {
+            sumThread.join(); // sumThread가 종료될 때 까지 main 쓰레드를 일시 정지시킴
+        }
+        catch(InterruptedException e) {}
+
+        System.out.println("1~100까지의 합 : " + sumThread.getSum());
+    }
+}
+
+class SumThread extends Thread
+{
+    private long sum;
+
+    public long getSum()
+    {
+        return sum;
+    }
+
+    public void setSum(long sum)
+    {
+        this.sum = sum;
+    }
+
+    public void run()
+    {
+        for(int i=1; i<=100; i++)
+        {
+            sum+=i;
+        }
+    }
+}
+```
+<br />
+
+## wait(), notify(), notifyAll() - 쓰레드 간 협업
+##### 두 개의 쓰레드를 번갈아가면서 실행해야  할 경우가 있을 수도 있습니다. 정확한 교대 작업이 필요할 경우, 자신의 작업이 끝나면 상대방 쓰레드를 일시 정지 상태에서 풀어주고, 자신은 일시 정지로 만드는 것이다. 이 방법의 핵심은 공유 객체에 있다. 공유 객체는 두 쓰레드가 작업할 내용을 각각 동기화 메소드로 구분해 놓고, 한 쓰레드가 작업을 완료하면 notity() 메소드를 호출해서 일시 정지 상태에 있는 다른 쓰레드를 실행 대기 상태로 만들어 놓고, 자신은 두 번 작업을 하지 않도록 wait() 메소드를 호출하여 일시 정지 상태로 만든다.
+##### 만약 wait() 대신 wait(long time)이나, wait(long time, int nanos)를 사용하면 notify()를 사용하지 않아도 지정된 시간이 지나면 쓰레드가 자동적으로 실행 대기 상태가 된다. notyfy() 메소드와 동일한 역할을 하는 notifyAll() 메소드도 있는데, notify()는 wait()에 의해 일시 정지된 쓰레드 중 한 개를 실행 대기 상태로 만들고, notifyAll() 메소드는 wait()에 의해 일시 정지된 모든 쓰레드들을 실행 대기 상태로 만든다. 이 메소드들은 Thread 클래스가 아닌 Object 클래스에 선언된 메소드이므로 모든 공유객체에서 호출이 가능하다. 
+##### 주의할 점은 이 메소드들은 동기화 메소드 또는 동기화 블록 내에서만 사용할 수 있다.
+<br />
+
+##### 다음 예제는 데이터를 저장하는 쓰레드(생산자)가 데이터를 저장하면, 데이터를 소비하는 쓰레드(소비자)가 데이터를 읽고 처리하는 교대 작업을 구현한 것이다.
+##### 생성자는 소비자가 읽기 전에 새로운 데이터를 두 번 생성하면 안되고(setData() 메소드를 두번 실행하면 안 됨), 소비자는 생성자가 새로운 데이터를 생성하기 전에 데이터를 두 번 읽어서도 안된다.(getData() 메소드를 두번 실행하면 안 됨). 
+##### 구현 방법은 공유 객체(DataBox)에 데이터를 저장할 수 있는 data 필드의 값이 null이면 생산자를 실행 대기 상태로 만들고, 소비자를 일시 정지 상태로 만드는 것이다. 반대로 data 필드의 값이 null이 아니면 소비자를 실행 대기 상태로 만들고, 생산자를 일시 정지 상태로 만들면 된다.
+
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        DataBox dataBox = new DataBox();
+
+        Producer producer = new Producer(dataBox);
+        Consumer consumer = new Consumer(dataBox);
+
+        producer.start();
+        consumer.start();
+    }
+}
+
+// 두 쓰레드의 작업 내용을 동기화 메소드로 작성한 공유 객체
+
+class DataBox
+{
+    private String data;
+
+    public synchronized String getData()
+    {
+        if(this.data == null)
+        {
+            try
+            {
+                wait();
+            }
+            catch(InterruptedException e){}
+        }
+
+        String returnValue = data;
+        System.out.println("소비자가 읽은 데이터 = " + returnValue);
+        data = null;
+        notify();
+        return returnValue;
+    }
+
+    public synchronized void setData(String data)
+    {
+        if(this.data != null)
+        {
+            try
+            {
+                wait();
+            }
+            catch(InterruptedException e){}
+        }
+
+        this.data = data;
+        System.out.println("생산자가 생성한 데이터 = " + data);
+        notify();
+    }
+}
+
+// 데이터를 생산하는 쓰레드
+class Producer extends Thread
+{
+    private DataBox dataBox;
+
+    public Producer(DataBox dataBox)
+    {
+        this.dataBox = dataBox;
+    }
+
+    @Override
+    public void run()
+    {
+        for(int i=1; i<=3; i++)
+        {
+            String data = "Data_" + i;
+            dataBox.setData(data);
+        }
+    }
+}
+
+//데이터를 소비하는 쓰레드
+class Consumer extends Thread
+{
+    private DataBox dataBox;
+
+    public Consumer(DataBox dataBox)
+    {
+        this.dataBox = dataBox;
+    }
+
+    @Override
+    public void run()
+    {
+        for(int i=1; i<=3; i++)
+        {
+            String data = dataBox.getData();
+        }
+    }
+}
+```
+<br />
+
+## stop플래그, interrupt() - 쓰레드의 안전한 종료
