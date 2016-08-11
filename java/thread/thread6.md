@@ -326,3 +326,147 @@ class Consumer extends Thread
 <br />
 
 ## stop플래그, interrupt() - 쓰레드의 안전한 종료
+##### 쓰레드는 자신의 run() 메소드가 모두 실행되면 자동적으로 종료된다. 경우에 따라서 실행 중인 쓰레드를 바로 종료할 필요가 있다. 예를 들면 동영상을 끝까지 보지 않고, 사용자가 멈춤을 요구할 수 있다. 
+##### Thread는 stop() 메소드를 제공하고 있는데, 이 메소드는 사용자제가 되어있다. 그 이유는 stop()메소드로 쓰레드를 종료하게 되면 쓰레드가 사용중이던 자원들이 불안전한 상태로 남겨지기 때문이다.
+##### 그렇다면 쓰레드를 즉시 종료시키기 위한 좋은 방법은 무엇일까?
+
+### stop 플래그를 이용하는 방법
+#####조금 촌스러운 방법이긴 한데 플래그를 이용하는 방법이다.
+```java
+public class XXXThread extends Thread
+{
+    private boolean stop; // (촌스러운) stop 플래그
+
+    public void run()
+    {
+        while( !stop )
+        {
+            // 반복하고 싶은 내용
+        }
+        // 쓰레드가 사용한 자원 정리
+    }
+}
+```
+<br />
+
+##### 아래 예제는 플래그를 이용한 예제다.
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        PrintThread thread = new PrintThread();
+        thread.start(); // 작업을 시작한다
+
+        try
+        {
+            Thread.sleep(1000); // 1초뒤에
+        }
+        catch(InterruptedException e){}
+
+        thread.setStop(true);  // 작업 종료한다.
+    }
+}
+
+class PrintThread extends Thread
+{
+    private boolean stop;
+
+    public void setStop(boolean stop)
+    {
+        this.stop = stop;
+    }
+
+    public void run()
+    {
+        while(!stop)
+        {
+            System.out.println("실행 중");
+        }
+
+        System.out.println("사용중이던 자원 종료");
+        System.out.println("종료");
+    }
+}
+```
+<br />
+
+### interrupt() 메소드를 이용하는 방법
+##### interrupt() 메소드는 쓰레드가 일시 정지 상태에 있을 때 `InterruptedException` 예외를 발생시키는 역할을 한다. 이것을 이용하면 run() 메소드를 정상 종료시킬 수 있다. 
+
+#### 방법1
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        PrintThread thread = new PrintThread();
+        thread.start();
+
+        try
+        {
+            Thread.sleep(1000);
+        }
+        catch(InterruptedException e){}
+        thread.interrupt();
+    }
+}
+
+class PrintThread extends Thread
+{
+    public void run()
+    {
+        try
+        {
+            while(true)
+            {
+                System.out.println("실행 중");
+                Thread.sleep(1); // interrupt() 호출 시 일시 정지 상태가 될 때 InterruptedException예외 발생
+            }
+        }
+        catch (InterruptedException e) {}
+        System.out.println("자원 정리");
+        System.out.println("실행 종료");
+    }
+}
+```
+<br />
+
+##### 일시 정지를 만들지 않고도 interrupt() 호출 여부를 알 수 있는 방법이 있다. 
+##### interrupted()와 isInterrupted() 메소드를 이용하는 것이다.
+#### 방법2
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        PrintThread thread = new PrintThread();
+        thread.start();
+
+        try
+        {
+            Thread.sleep(1000);
+        }
+        catch(InterruptedException e){}
+        thread.interrupt();
+    }
+}
+
+class PrintThread extends Thread
+{
+    public void run()
+    {
+        while(true)
+        {
+            System.out.println("실행 중");
+            if(Thread.interrupted())
+            {
+                break;
+            }
+        }
+
+        System.out.println("자원 정리");
+        System.out.println("실행 종료");
+    }
+}
+```
