@@ -120,5 +120,82 @@ Thread t = new Thread(ThreadGroup group, String name);
 ##### Runnable 타입의 target은 Runnable 구현 객체를 말하며, String 타입의 name은 쓰레드의 이름이다. 그리고 long 타입의 stackSize는 JVM이 이 쓰레드이 할당할 stack 크기다.
 
 ## 3. interrupt() - 쓰레드 그룹의 일괄
+##### 쓰레드를 쓰레드 그룹에 포함시키면 어떤 이점이 있을까??
+##### 쓰레드 그룹에서 제공하는 interrupt() 메소드를 이용하면 그룹 내에 포함된 모든 쓰레드들을 일괄 interrupt할 수 있다. 예를 들면 쓰레드들을 모두 종료시키기 위해 각 쓰레드에서 interrupt() 메소드를 10번 호출할 수도 있지만, 이 쓰레드들이 같은 쓰레드 그룹에 소속되어 있을 경우, 쓰레드 그룹의 interrupt() 메소드를 한번만 호출해주면 된다.
+##### 이것이 가능한 이유는 쓰레드 그룹의 interrupt() 메소드는 포함된 모든 쓰레드의 interrupt() 메소드를 내부적으로 호출해주기 때문이다.
+<br />
+##### 쓰레드 그룹의 interrupt()메소드는 소속된 쓰레드의 interrupt() 메소드를 호출만 할 뿐 개별 쓰레드에서 발생하는 InterruptedException에 대한 예외 처리를 하지 않는다. 따라서 안전한 종료를 위해서 개별 쓰레드가 예외 처리를 해야한다.
+##### 쓰레드 그룹에는 interrupt()메소드 이외에도 suspend(), resume(), stop() 메소드들이 있는데, 모두 권장하지 않음으로 되어있다. 
+##### 아래는 ThreadGroup이 가지고 있는 주요 메소드들이다.
+
+| 반환형| 메소드 | 설명 |
+| --- | --- | --- |
+| int | activeCount() | 현재 그룹 및 하위 그룹에서 활동 중인 모든 쓰레드의 수를 리턴한다. |
+| int | activeGroupCount() | 현재 그룹에서 활동 중인 모든 하위 그룹의 수를 리턴한다. | 
+| void | checkAccess() | 현재 쓰레드가 쓰레드 그룹을 변경할 권한이 있는지 체크한다. 만약 권한이 없으면 SecurityException예외를 발생시킨다. |
+| void | destroy() | 현재 그룹 및 하위 그룹을 모두 삭제한다. 단, 그룹 내에 포함된 모든 쓰레드들이 종료 상태가 되어야 한다. |
+| boolean | isDestoryed() | 현재 그룹이 삭제되었는지 여부를 리턴한다. |
+| int | getMaxPriority() | 현재 그룹에 포함된 쓰레드가 가질 수 있는 최대 우선순위를 리턴한다. |
+| void | setMaxPriority(int pri) | 현재 그룹에 포함된 쓰레드가 가질 수 있는 최대 우선순위를 설정한다. |
+| String | getName() | 현재 그룹의 이름을 리턴한다. | 
+| ThreadGroup | getParent() | 현재 그룹의 부모 그룹을 리턴한다. |
+| boolean | parentOf(ThreadGroup g) | 현재 그룹이 매개값으로 지정한 쓰레드 그룹의 부모인지 여부를 리턴한다. |
+| boolean | isDaemon() | 현재 그룹이 데몬 그룹인지 여부를 리턴한다. |
+| void | setDaemon(boolean daemon) | 현재 그룹을 데몬 그룹으로 설정한다. |
+| void | list() | 현재 그룹에 포함된 쓰레드와 하위 그룹에 대한 정보를 출력한다. |
+| void | interrupt() | 현재 그룹에 포함된 모든 쓰레드들을 interrupt한다. |
+<br />
+##### 아래 예제는 쓰레드 그룹을 생성하고, 정보를 출력한다. 3초 뒤 쓰레드 그룹의 interrupt()메소드를 호출해서 쓰레드 그룹에 포함된 모든 쓰레드들을 종료시킨다.
+
+```java
+public class Main
+{
+    public static void main(String[] args)
+    {
+        ThreadGroup myGroup = new ThreadGroup("myGroup");
+        WorkThread workThreadA = new WorkThread(myGroup, "workThreadA");
+        WorkThread workThreadB = new WorkThread(myGroup, "workThreadB");
+
+        workThreadA.start();
+        workThreadB.start();
+
+        System.out.println("[main 쓰레드 그룹의 list() 메소드 출력 내용 ] ");
+        ThreadGroup mainGroup = Thread.currentThread().getThreadGroup();
+        mainGroup.list(); System.out.println();
+
+        try{ Thread.sleep(3000); } catch(InterruptedException e) {}
+
+        System.out.println("[ myGroup 쓰레드 그룹의 interrupt() 메소드 호출 ]");
+        myGroup.interrupt();
+
+    }
+}
+
+class WorkThread extends Thread
+{
+    public WorkThread(ThreadGroup threadGroup, String threadName)
+    {
+        super(threadGroup, threadName);
+    }
+
+    @Override
+    public void run()
+    {
+        while(true)
+        {
+            try
+            {
+                Thread.sleep(1000);
+            }
+            catch(InterruptedException e) // while 문을 빠져나와 쓰레드를 종료시킴
+            {
+                System.out.println(getName() + " interrupted");
+                break;
+            }
+        }
+        System.out.println(getName() + " 종료됨");
+    }
+}
+```
 
 
