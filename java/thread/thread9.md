@@ -9,6 +9,7 @@
 ##### ExecutorService 구현 객체는 Executors 클래스의 다음 두 가지 메소드 중 하나를 이용해서 간편하게 생성할 수 있다.
 
 | 메소드명(매개 변수) | 초기 쓰레드 수 | 코어 쓰레드 수 | 최대 쓰레드 수 |
+| --- | --- | --- | --- |
 | newCachedThreadPool() | 0 | 0 | Integer.MAX_VALUE |
 | newFixedThreadPool(int nThreads) | 0 | nThreads | nThreads |
 
@@ -46,6 +47,7 @@ ExecutorService threadPool = new ThreadPoolExecutor(
 ##### 쓰레드풀의 쓰레드는 기본적으로 데몬 쓰레드가 아니기 때문에 main 쓰레드가 종료되더라도 작업을 처리하기 위해 계속 실행 상태로 남아있다. 그래서 main() 메소드가 실행이 끝나도 애플리케이션 프로세스는 종료되지 않는다. 애플리케이션을 종료하려면 쓰레드풀을 종료시켜 쓰레드들이 종료 상태가 되도록 처리해줘야 한다. ExecutorService는 종료와 관련해서 아래와 같이 세 개의 메소드를 제공하고 있다.
 
 | 리턴타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
 | void | shutdown() | 현재 처리 중인 작업뿐만 아니라 작업 큐에 대기하고 있는 모든 작업을 처리한 뒤에 쓰레드풀을 종료시킨다. |
 | List<Runnable> | shutdownNow() | 현재 작업 처리 중인 쓰레드를 interrupt해서 작업 중지를 시도하고 쓰레드풀을 종료시킨다. 리턴값은 작업 큐에 있는 미처리된 작업(Runnable)의 목록이다. |
 | boolean | awaitTermination(long timeout, TimeUnit unit) | shutdown() 메소드 호출 이후, 모든 작업 처리를 timeout 시간 내에 완료하면 true를 리턴하고, 완료하지 못하면 작겁 처리 중인 쓰레드를 interrupt하고 false를 리턴한다. | 
