@@ -100,3 +100,25 @@ Name : Finalizer(데몬)
 ## 2. 쓰레드 그룹 생성
 ##### 지금 까지 만들어져 있는 쓰레드 그룹을 얻기만 했다. 명시적으로 쓰레드르 그룹을 만들고 싶다면 다음 생성자 중 하나를 이용해서 ThreadGroup 객체를 만들면 된다. ThreadGroup 이름만 주거나, 부모 ThreadGroup과 이름을 매개값으로 줄 수 있다.
 
+```
+ThreadGroup tg = new ThreadGroup(String name);
+ThreadGroup tg = new ThreadGroup(ThreadGroup parent, String name);
+```
+<br />
+
+##### 쓰레드 그룹 생성 시 부모 쓰레드 그룹을 지정하지 않으면 현재 쓰레드가 속한 그룹의 하위 그룹으로 생성된다. 예를 들어 main 쓰레드가 ThreadGroup(String name)을 이용해서 새로운 쓰레드 그룹을 생성하면, main 쓰레드 그룹의 하위 쓰레드 그룹이 된다.
+##### 새로운 쓰레드 그룹을 생성한 후, 이 그룹에 쓰레드를 포함시키려면 Thread 객체를 생성할 때 생성자 매개값으로 쓰레드 그룹을 지정하면 된다. 쓰레드 그룹을 매개값으로 갖는 Thread 생성자는 아래와 같이 네 가지가 있다.
+
+```java
+Thread t = new Thread(ThreadGroup group, Runnable target);
+Thread t = new Thread(ThreadGroup group, Runnable target, String name);
+Thread t = new Thread(ThreadGroup group, Runnable target, String name, long stackSize);
+Thread t = new Thread(ThreadGroup group, String name);
+```
+<br />
+
+##### Runnable 타입의 target은 Runnable 구현 객체를 말하며, String 타입의 name은 쓰레드의 이름이다. 그리고 long 타입의 stackSize는 JVM이 이 쓰레드이 할당할 stack 크기다.
+
+## 3. interrupt() - 쓰레드 그룹의 일괄
+
+
