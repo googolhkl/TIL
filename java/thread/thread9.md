@@ -119,7 +119,7 @@ public class Main
             executorService.execute(runnable);
             //executorService.submit(runnable);
 
-            Thread.sleep(10); // 콘솔에 출려 시간을 주기 위해 0.01초 일시 정지
+            Thread.sleep(10); // 콘솔에 출력 시간을 주기 위해 0.01초 일시 정지
 
         }
         executorService.shutdown();
@@ -129,3 +129,13 @@ public class Main
 ```
 <br />
 ##### 위의 코드에서 주석 부분(submit)을 변경하면 확연한 차이를 볼 수 있다. 
+##### 오버헤드를 줄이기 위해 submit() 메소드 사용하는 것이 더 좋다.
+
+### 3. 블로킹 방식의 작업 완료 통보
+##### ExecutorService의 submit()메소드는 매개값으로 준 Runnable또는 Callable 작업을 쓰레드풀의 작업 큐에 저장하고 즉시 Future 객체를 리턴한다.
+
+| 리턴 타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
+| Future<?> | submit(Runnable task) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
+| Future<V> | submit(Runnable task. V result) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
+| Future<V> | submit(Callable<V> task) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
