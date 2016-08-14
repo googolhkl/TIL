@@ -68,19 +68,4 @@ executorService.shutdownNow();
 
 | Runnable 구현 클래스 | Callable 구현 클래스 |
 | --- | --- |
-| 
-Runnable task = new Runnable() {
-    @Override
-    public void run()
-    {
-        // 쓰레드가 처리할 작업 내용 
-    }
-} 
- |
-Callable<T> task = new Callable<T> {
-    @Override
-    public T call() throws Exception {
-        // 쓰레드가 처리할 작업 내용
-    }
-}
-|
+| Runnable task = new Runnable() {<br />@Override<br />public void run() {<br /> // 쓰레드가 처리할 작업 내용<br />}<br />} | Callable<T> task = new Callable<T> {<br />@Override<br /> public T call() throws Exception {<br />// 쓰레드가 처리할 작업 내용<br />}<br />} |
