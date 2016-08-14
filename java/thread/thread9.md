@@ -69,3 +69,63 @@ executorService.shutdownNow();
 | Runnable 구현 클래스 | Callable 구현 클래스 |
 | --- | --- |
 | Runnable task = new Runnable() {<br /> @Override<br /> public void run() {<br /> // 쓰레드가 처리할 작업 내용<br /> }<br />} | Callable<T> task = new Callable<T> {<br /> @Override<br /> public T call() throws Exception {<br />// 쓰레드가 처리할 작업 내용<br /> }<br />} |
+
+##### Runnable의 run() 메소드는 리턴값이 없고, Callable의 call() 메소드는 리턴값이 있다. call()의 리턴 타입은implements Callable<T>에서 지정한 T타입이다. 쓰레드풀의 쓰레드는 작업 큐에서 Runnable또는 Callable객체를 가져와 run() 또는 call()메소드를 실행하다.
+
+### 작업 처리 요청
+##### 작업 처리 요청이란 ExecutorService의 작업 큐에 Runnable 또는 Callable객체를 넣는 행위를 말한다. 
+##### ExecutorService는 작업 처리 요청을 위해 다음 두 가지 종료의 메소드를 제공한다.
+
+| 리턴 타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
+| void | execute(Runnable command) | - Runnable을 작업 큐에 저장<br /> - 작업 처리 결과를 받지 못함 |
+| Future<?> | submit(Runnable task)<br />submit(Runnable task, V result)<br />submit(Callable<V> task) | - Runnable또는 Callable을 작업 큐에 저장<br />- 리턴된 Future를 통해 작업 처리 결과를 얻을 수 있음 |
+
+##### execute()와 submit() 메소드의 차이점은 아래와 같이 두가지가 있다.
+
+| exeucte() | submit() |
+| --- | --- |
+| 작업 처리 결과를 받지 못함. | 작업 처리 결과를 받음 |
+| 예외가 발생하면 쓰레드가 종료되고 쓰레드풀에서 제거 후 다른 작업을 위한 새로운 쓰레드 생성(오버헤드 증가) | 예외가 발생하면 쓰레드는 종료되지 않고 다른 작업을 위해 재사용됨(오버헤드 감소) |
+
+##### 아래 예제는 Runnable 작업을 정의할 때 Integer.parseInt("삼")을 넣어 `NumberFormatException`이 발생하도록 유도했다. 10개의 작업을 exeucte()와 submit() 메소드로 각각 처리 요청 했을 경우 쓰레드풀의 상태를 살펴보도록 하자.
+##### 먼저 exeucte() 메소드로 작업 처리를 요청한 경우를 보자.
+
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
+public class Main
+{
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(2); // 최대 쓰레드 개수가 2인 쓰레드풀 생성
+
+        for(int i=0; i<10; i++)
+        {
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run()
+                {
+                    //쓰레드 총 개수 및 작업 쓰레드 이름 출력
+                    ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) executorService;
+                    int poolSize = threadPoolExecutor.getPoolSize();
+                    String threadName = Thread.currentThread().getName();
+                    System.out.println("[총 쓰레드 개수 : " + poolSize +"] 작업 쓰레드 이름 : " + threadName);
+                    int value = Integer.parseInt("삼");
+                }
+            };
+
+            executorService.execute(runnable);
+            //executorService.submit(runnable);
+
+            Thread.sleep(10); // 콘솔에 출려 시간을 주기 위해 0.01초 일시 정지
+
+        }
+        executorService.shutdown();
+
+    }
+}
+```
+<br />
+##### 위의 코드에서 주석 부분(submit)을 변경하면 확연한 차이를 볼 수 있다. 
