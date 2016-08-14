@@ -31,7 +31,7 @@ ExecutorService executorService = Executors.newFixedThreadPool(
 <br />
 
 ##### newCachedThreadPool()과 newFixedThreadPool() 메소드를 사용하지 않고 코어 쓰레드 개수와 최대 쓰레드 개수를 설정하고 싶다면 직접 ThreadPoolExecutor 객체를 생성하면 된다.
-##### 위에서 설명한 두 가지 메소드도 내부적으로 ThreadPoolExecutor 객체를 생성해서 리턴한다. 다음은 초기 쓰레드 개수가 0개, 코어 쓰레드 개수가 3개, 최대 쓰레드 개수가 100개인 쓰레드풀을 생성한다. 그리고 코어 쓰레드 3개르 ᆯ제외한 나머지 추가된 쓰레드가 120초 동안 놀고 있을 경우 해당 쓰레드를 제거해서 쓰레드 수를 관리한다.
+##### 위에서 설명한 두 가지 메소드도 내부적으로 ThreadPoolExecutor 객체를 생성해서 리턴한다. 다음은 초기 쓰레드 개수가 0개, 코어 쓰레드 개수가 3개, 최대 쓰레드 개수가 100개인 쓰레드풀을 생성한다. 그리고 코어 쓰레드 3개를 제외한 나머지 추가된 쓰레드가 120초 동안 놀고 있을 경우 해당 쓰레드를 제거해서 쓰레드 수를 관리한다.
 
 ```java
 ExecutorService threadPool = new ThreadPoolExecutor(
@@ -60,3 +60,28 @@ executorService.shutdown();
 또는
 executorService.shutdownNow();
 ```
+
+## 2. 작업 생성과 처리 요청
+### 작업 생성
+##### 하나의 작업은 Runnable 또는 Callable 구현 클래스로 표현한다. Runnable과 Callable의 차이는 작업 처리 완료 후 리턴값이 있냐 없냐 차이다. 
+##### 아래는 작업을 정의하기 위해 Runnable과 Callable 구현 클래스를 작성하는 방법을 보여준다.
+
+| Runnable 구현 클래스 | Callable 구현 클래스 |
+| --- | --- |
+| ```java
+Runnable task = new Runnable() {
+    @Override
+    public void run()
+    {
+        // 쓰레드가 처리할 작업 내용 
+    }
+} 
+``` |
+```java
+Callable<T> task = new Callable<T> {
+    @Override
+    public T call() throws Exception {
+        // 쓰레드가 처리할 작업 내용
+    }
+}
+``` |
