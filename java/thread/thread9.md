@@ -154,3 +154,9 @@ public class Main
 | submit(Runnable task) | future.get() -> null | future.get() -> 예외 발생 |
 | submit(Runnable task, Integer result) | future.get() -> int 타입 값 | future.get() -> 예외 발생 |
 | submit(Callable<String> task) | future.get() -> String 타입 값 | future.get() -> 예외 발생 |
+
+##### Future를 이요한 블로킹 방식의 작업 완료 통보에서 주의할 점은 작업을 처리하는 쓰레드가 작업을 완료하기 전까지는 get()메소드가 블로킹되므로 다른 코드를 실행할 수 없다. 만약 UI를 변경하고 이벤트를 처리하는 쓰레드가 get() 메소드를 호출하면 작업을 완료하기 전까지는 UI를 변경할 수도 없고 이벤트를 처리할 수도 없게 된다. 때문에 get() 메소드를 호출하는 쓰레드는 새로운 쓰레드이거나 쓰레드풀의 또 다른 쓰레드가 되어야 한다.
+
+| 새로운 쓰레드를 생성해서 호출 | 쓰레드풀의 쓰레드가 호출 |
+| --- | --- |
+| new Thread(new Runnable() {<br />  @Override<br />  public void run() {<br />  try{<br />  future.get();<br />  } catch (Exception e) {<br />  e.printStackTrace();<br />  }<br />  }<br />  }).start(); | executorService.submit(new Runnable() {<br />  @Override<br />  public void run(){<br />  try{<br />  future.get();<br />  } catch(Exception e){<br />  e.printStackTrace();<br />  }<br /> }<br />}); |
