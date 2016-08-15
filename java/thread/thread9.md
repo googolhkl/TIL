@@ -160,3 +160,15 @@ public class Main
 | 새로운 쓰레드를 생성해서 호출 | 쓰레드풀의 쓰레드가 호출 |
 | --- | --- |
 | new Thread(new Runnable() {<br />  @Override<br />  public void run() {<br />  try{<br />  future.get();<br />  } catch (Exception e) {<br />  e.printStackTrace();<br />  }<br />  }<br />  }).start(); | executorService.submit(new Runnable() {<br />  @Override<br />  public void run(){<br />  try{<br />  future.get();<br />  } catch(Exception e){<br />  e.printStackTrace();<br />  }<br /> }<br />}); |
+
+##### Future 객체는 작업 결과를 얻기 위한 get()  메소드 이외에도 다음과 같은 메소드를 제공한다.
+
+| 리턴 타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
+| boolean | cancel(boolean mayInterruptIfRunning) | 작업 처리가 진행 중일 경우 취소시킴 |
+| boolean | isCancelled() | 작업이 취소되었는지 여부 |
+| boolean | isDone() | 작업 처리가 완료되었는지 여부 | 
+
+##### canlcel() 메소드는 작업이 시작되기 전이라면 mayInterruptIfRunning 매개값과는 상관없이 작업 취소 후 true를 리턴하지만, 작업이 진행 중이라면 mayInterruptIfRunning 매개값이 true일 경우에만 작업 쓰레드를 interrupt한다. 
+##### isCancelled() 메소드는 작업이 완료되기 전에 작업이 취소 되었을 경우에만 true를 리턴한다.
+##### isDone() 메소드는 작업이 정상적, 예외, 취소 등 어떤 이유에서건 작업이 완료되었다면 true를 리턴한다. 
