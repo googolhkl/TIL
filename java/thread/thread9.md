@@ -139,3 +139,18 @@ public class Main
 | Future<?> | submit(Runnable task) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
 | Future<V> | submit(Runnable task. V result) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
 | Future<V> | submit(Callable<V> task) | - Runnable또는 Callable을 작업 큐에 저장<br /> - 리턴된 Future를 통해 작업 처리 결과를 얻음 |
+
+##### Future객체는 작업 결과가 아니라 작업이 완료될 때 까지 기다렸다가(블로킹되었다가) 최종 결과를 얻는데 사용된다. 그래서 Future를 지연 완료(pending completion) 객체라고 한다. Future의 get() 메소드를 호출하면 쓰레드가 작업을 완료할 때까지 블로킹되었다가 작업을 완료하면 처리 결과를 리턴한다. 이것이 블로킹을 사용하는 작업 완료 통보 방식이다. 아래는 Future가 가지고 있는 get() 메소드를 설명한 표다.
+
+| 리턴 타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
+| V | get() | 작업이 완료될 때까지 블로킹되었다가 처리 결과 V를 리턴 |
+| V | get(long timeout, TimeUnit unit) | timeout시간 전에 작업이 완료되면 결과 V를 리턴하지만, 작업이 완료되지 아으면 TimeoutException을 발생시킴 |
+
+##### 리턴 타입인 V는 submit(Runnable task, V result) 의 두 번째 매개값인 V 타입이거나 submit(Callable<V> task)의 Callable 타입 파라미터 V타입이다. 다음은 세 가지 submit() 메소드 별로 Future의 get() 메소드가 리턴하는 값을 보여준다.
+
+| 메소드 | 작업 처리 완료 후 리턴 타입 | 작업 처리 도중 예외 발생 |
+| --- | --- | --- |
+| submit(Runnable task) | future.get() -> null | future.get() -> 예외 발생 |
+| submit(Runnable task, Integer result) | future.get() -> int 타입 값 | future.get() -> 예외 발생 |
+| submit(Callable<String> task) | future.get() -> String 타입 값 | future.get() -> 예외 발생 |
