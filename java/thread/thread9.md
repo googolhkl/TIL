@@ -172,3 +172,161 @@ public class Main
 ##### canlcel() 메소드는 작업이 시작되기 전이라면 mayInterruptIfRunning 매개값과는 상관없이 작업 취소 후 true를 리턴하지만, 작업이 진행 중이라면 mayInterruptIfRunning 매개값이 true일 경우에만 작업 쓰레드를 interrupt한다. 
 ##### isCancelled() 메소드는 작업이 완료되기 전에 작업이 취소 되었을 경우에만 true를 리턴한다.
 ##### isDone() 메소드는 작업이 정상적, 예외, 취소 등 어떤 이유에서건 작업이 완료되었다면 true를 리턴한다. 
+
+### 리턴값이 없는 완료 통보
+##### 리턴값이 없는 작업일 경우는 Runnable 객체로 생성하면 된다. 다음은 Runnable 객체를 생성하는 방법을 보여준다.
+
+```java
+Runnable task = new Runnable()
+{
+    @Override
+    public void run()
+    {
+        // 쓰레드가 처리할 작업 내용
+    }
+};
+```
+##### 결과값이 없는 작업 처리 요청은 submit(Runnable task) 메소드를 이용하면 된다. 결과값이 없는데도 아래와같이 Future 객체를 리턴하는데, 이것은 쓰레드가 작업 처리를 정상적으로 완료했는지, 아니면 작업 처리 도중에 예외가 발생했는지 확인하기 위해서이다.
+```java
+Future future = executorService.submit(task);
+```
+
+##### 작업 처리가 정상적으로 완료되었다면 Future의 get() 메소드는 null을 리턴하지만 쓰레드가 작업 처리 도중 interrupt되면 InterruptedException을 발생시키고, 작업 처리 도중 예외가 발생하면 ExecutionException을 발생시킨다. 그래서 아래와 같이 예외처리를 해줘야 한다.
+```java
+try
+{
+    future.get();
+}
+catch(InterruptedException e)
+{
+    // 작업 처리 도중 쓰레드가 interrupt 될 경우 실행할 코드
+}
+catch(ExecutionException e)
+{
+    // 작업 처리 도중 예외가 발생할 경우 실행할 코드
+}
+```
+
+##### 아래는 리턴값이 없고 1부터 10까지의 합을 출력하는 작업을 Runnable 객체로 생성하고, 쓰레드풀의 쓰레드가 처리하도록 요청한 것이다.
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+public class Main
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        System.out.println("[작업 처리 요청]");
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run()
+            {
+                int sum = 0;
+                for(int i=1; i<=10; i++)
+                {
+                    sum += i;
+                }
+                System.out.println("[처리 결과] " + sum);
+            }
+        };
+
+        Future future = executorService.submit(runnable);
+
+        try
+        {
+            future.get();
+            System.out.println("[작업 처리 완료]");
+        }
+        catch(Exception e)
+        {
+            System.out.println("[실행 예외 발생함] " + e.getMessage());
+        }
+        executorService.shutdown();
+    }
+}
+```
+
+### 리턴값이 있는 작업 완료 통보
+##### 쓰레드풀의 쓰레드가 작업을 완료한 후에 애플리케이션의 처리 결과를 얻고 싶을 때 작업 객체를 Callable로 생성하면 된다. 아래는 객체를 생성하는 코드인데, 주의할 점은 제네릭 타입 파라미터 T는 call() 메소드가 리턴하는 타입이 되도록 해야하는 것이다.
+```java
+Callable<T> task = new Callable<T>()
+{
+    @Override
+    public T call() throws Exception
+    {
+        // 쓰레드가 처리할 작업 내용
+    }
+};
+```
+<br />
+##### Callable 작업의 처리 요청은 Runnable 작업과 마찬가지로 ExecutorService의 submit() 메소드를 호출하면 된다. submit() 메소드는 작업 큐에 Callable 객체를 저장하고 즉시 Future<T>를 리턴한다. 이때 T는 call()  메소드가 리턴하는 타입이다.
+
+```java
+Future<T> future = executorService.submit(task);
+```
+##### 쓰레드풀의 쓰레드가 Callable 객체의 call() 메소드를 모두 실행하고 T 타입의 값을 리턴하면, Future<T>의 get() 메소드는 블로킹이 해제되고 T 타입의 값을 리턴하게 된다.
+
+```java
+try
+{
+    T result = future.get();
+}
+catch(InterruptedException e)
+{
+    // 작업 처리 도중 쓰레드가 interrupt될 경우 실행할 코드
+}
+catch(ExecutionException e)
+{
+    // 작업 처리 도중 예외가 발생할 경우 실행할 코드
+}
+```
+<br />
+#####아래는 1부터 10까지 리턴하는 작업을 Callable 객체로 생성하고, 쓰레드풀의 쓰레드가 처리하도록 요청한 것이다.
+```java
+import java.util.concurrent.*;
+
+public class Main
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        System.out.println("[작업 처리 요청");
+        Callable<Integer> task = new Callable<Integer>()
+        {
+            @Override
+            public Integer call() throws Exception
+            {
+                int sum = 0;
+                for(int i=1; i<=10; i++)
+                {
+                    sum += i;
+                }
+                return sum;
+            }
+        };
+
+        Future<Integer> future = executorService.submit(task); // 작업 등록
+
+        try
+        {
+            int sum = future.get(); // 작업 실행
+            System.out.println("[처리 결과 " +sum);
+            System.out.println("[작업 처리 완료]");
+        }
+        catch(Exception e)
+        {
+            System.out.println("[실행 예외 발생함] " + e.getMessage());
+        }
+        
+        executorService.shutdown();
+    }
+}
+```
+<br />
+
+### 작업 처리 결과를 외부 객체에 저장
+
