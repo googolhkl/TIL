@@ -329,4 +329,100 @@ public class Main
 <br />
 
 ### 작업 처리 결과를 외부 객체에 저장
+##### 상황에 따라서 쓰레드가 작업한 결과를 외부 객체에 저장해야 할 경우도 있을 수 있다. 예를 들면 쓰레드가 작업 처리를 완료하고 외부 Result 객체에 작업 결과를 저장하면, 애플리케이션이 Result 객체를 사용해서 어떤 작업을 진행할 수 있을 것이다. 대개 Result 객체는 공유 객체가 되어, 두 개 이상의 쓰레드 작업을 취합할 목적으로 이용된다.
+##### 이런 작업을 하기 위해서 ExecutorService의 submit(Runnable task, V result) 메소드를 사용할 수 있는데, V가 바로 Result 타입이 된다. 메소드를 호출하면 즉시 Future<V>가 리턴되는데, Future의 get() 메소드를 호출하면 쓰레드가 작업을 완료할 때 까지 블로킹되었다가 작업을 완료하면 V 타입 객체를 리턴한다. 리턴된 객체는 submit()의 두 번째 매개값으로 준 객체와 동일한데, 차이점은 쓰레드 처리 결과가 내부에 저장되어 있다는 것이다.
 
+```java
+Result result = ...;
+Runnable task = new Task(result);
+Future<Result> future = executorService.submit(task, result);
+result = future.get();
+```
+##### 작업 객체는 Runnable 구현 클래스로 생성하는데, 주의할 점은 쓰레드에서 결과를 저장하기 위해 외부 Result 객체를 사용해야 하므로 생성자를 통해 Result 객체를 주입받도록 해야 한다.
+
+```java
+class Task implements Runnable
+{
+    Result result;
+    Task(Result result)
+    {
+        this.result = result;
+    }
+    
+    @Override
+    public void run()
+    {
+        // 작업 코드
+        // 처리 결과를 result 저장
+    }
+}
+```
+
+##### 아래 예제는 1부터 10까지의 합을 계산하는 두 개의 작업을 쓰레드풀에 처리 요청하고, 각각의 쓰레드가 작업 처리를 완료한 후 산출된 값을 외부 Result 객체에 누적하도록 하는 예제다.
+
+```java
+import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException
+    {
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        System.out.println("[작업 처리 요청]");
+
+        //작업 정의
+        class Task implements Runnable
+        {
+            Result result;
+
+            Task(Result result)
+            {
+                this.result = result;
+            }
+
+            @Override
+            public void run()
+            {
+                int sum = 0;
+                for (int i = 1; i <= 10; i++)
+                {
+                    sum += i;
+                }
+                result.addValue(sum);
+            }
+        }
+
+        // 두 가지 작업 처리를 요청
+        Result result = new Result();
+        Runnable task1 = new Task(result);
+        Runnable task2 = new Task(result);
+        Future<Result> future1 = executorService.submit(task1, result);
+        Future<Result> future2 = executorService.submit(task2, result);
+
+        try
+        {
+            // 두 가지 작업 결과를 취합
+            result = future1.get();
+            result = future2.get();
+            System.out.println("[처리 결과 " + result.accumValue);
+            System.out.println("[작업 처리 완료]");
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            System.out.println("[실행 예외 발생] " + e.getMessage());
+        }
+        executorService.shutdown();
+
+    }
+}
+
+class Result
+{
+    int accumValue;
+    synchronized void addValue(int value)
+    {
+        accumValue += value;
+    }
+}
+```
