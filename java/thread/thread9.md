@@ -556,6 +556,7 @@ CompletionHandler<V, A> callback = new CompletionHandler<V ,A>() {
     {
     }
 };
+```
 ##### CompletionHandler는 completed()와 failed() 메소드가 있는데, completed()는 작업을 정상 처리 완료했을 때 호출되는 콜백 메소드이고, failed()는 작업 처리 도중 예외가 발생했을 때 호출되는 콜백 메소드이다. CompletionHandler의 V 타입 파라미터는 결과값의 타입이고, A는 첨부값의 타입이다. 첨부값은 콜백 메소드에 결과값 이외에 추가적으로 전달하는 객체라고 생각하면 된다. 만약 필요없다면 Void로 지정해주면 된다.
 ##### 아래는 작업 처리 결과에 따라 콜백 메소드를 호출하는 Runnable객체다.
 
