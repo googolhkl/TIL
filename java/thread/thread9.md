@@ -426,3 +426,221 @@ class Result
     }
 }
 ```
+<br />
+
+### 작업 완료 순으로 통보 
+##### 작업 요청 순서대로 작업 처리 완료가 되는 것은 아니다. 쓰레드풀에서 작업 처리가 완료된 것만 통보받는 방법이 있는데, CompletionService를 이용하는 것이다. CompletionService는 처리 완료된 작업을 가져오는 Poll()과 take() 메소드를 제공한다.
+
+| 리턴 타입 | 메소드명(매개 변수) | 설명 |
+| --- | --- | --- |
+| Future<V> | poll() | 완료된 작업의 Future를 가져옴.<br />완료된 작업이 없다면 즉시 null을 리턴함 |
+| Future<V> | poll(long timeout, TimeUnit unit) | 완료된 작업의 Future를 가져옴.<br />완료된 작업이 없다면 timeout까지 블로킹됨. |
+| Future<V> | take() | 완료된 작업의 Future를 가져옴.<br />완료된 작업이 없다면 있을때 까지 블로킹됨. |
+| Future<V> | submit(Callable<V> task) | 쓰레드풀에 Callable 작업 처리 요청 |
+| Future<V> | submit(Runnable task, V result) | 쓰레드풀에 Runnable 작업 처리 요청 |
+
+##### CompletionService 구현 클래스는 ExecutorCompletionService<V>이다. 객체를 생성할 때 생성자 매개값으로 ExecutorService를 제공하면 된다.
+```java
+ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+CompletionService<V> completionService = new ExecutorCompletionService<V>(executorService);
+```
+
+##### poll()과 take() 메소드를 이용해서 처리 완료된 작업의 Future를 얻으려면 CompletionService의 submit() 메소드로 작업 처리 요청을 해야 한다.
+
+```java
+completionService.submit(Callable<V> task);
+completionService.submit(Runnable task, V result);
+```
+
+##### 아래는 take() 메소드를 호출하여 완료된 Callable 작업이 있을 때 까지 블로킹 되었다가 완료된 작업의 Future를 얻고, get() 메소드로 결과값을 얻어내는 코드이다.
+##### while문은 애플리케이션이 종료될 때 까지 반복 실행 하므로 쓰레드풀의 쓰레드에서 실행하는 것이 좋다.
+```java
+executorService.submit(new Runnable(){
+    @Override
+    public void run()
+    {
+        while(true)
+        {
+            try
+            {
+                Future<Integer> future = completionService.take(); // 완료된 작업이 있을 때까지 블로킹/완료된 작업이 있으면 Future리턴
+                int value = future.get(); // get은 블로킹 되지 않고 바로 리턴
+                System.out.println("처리결과 = " + value);
+            }
+            catch(Exception e)
+            {
+                break;
+            }
+        }
+    }
+});
+<br />
+#####`take() 메소드가 리턴하는 완료된 작업은 submit() 으로 처리 요청한 작업의 순서가 아님을 명심해야 한다.` 작업의 내용에 따라서 먼저 요청한 작업이 나중에 완료될 수도 있기 때문이다. 더 이상 완료된 작업을 가져올 필요가 없다면 take() 블로킹에서 빠져나와 while문을 종료해야 한다. ExecutorService의 shutdownNow()를 호출하면 take()에서 InterruptedException이 발생하고 catch절에서 break되어 while문을 종료하게 된다.
+
+##### 아래는 3개의 Callable 작업을 처리 요청하고 처리가 완료되는 순으로 작업의 결과값을 출력하도록 했다.
+
+```java
+import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException
+    {
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+        CompletionService<Integer> completionService = new ExecutorCompletionService<Integer>(executorService);
+
+        System.out.println("[작업 처리 요청]");
+
+        for(int i=0; i<3; i++)
+        {
+            // 쓰레드풀에게 작업 처리 요청
+            completionService.submit(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception
+                {
+                    int sum =0;
+                    for(int i=1; i<=10; i++)
+                    {
+                        sum += i;
+                    }
+                    return sum;
+                }
+            });
+        }
+
+        System.out.println("[처리 완료된 작업 확인]");
+        // 쓰레드풀의 쓰레드에서 실행하도록 함
+        executorService.submit(new Runnable() {
+            @Override
+            public void run()
+            {
+                while(true)
+                {
+                    try
+                    {
+                        Future<Integer> future = completionService.take(); // 완료된 작업 가져오기
+                        int value = future.get();
+                        System.out.println("[처리 결과] " + value);
+                    }
+                    catch(Exception e)
+                    {
+                        break;
+                    }
+                }
+            }
+        });
+
+        try
+        {
+            Thread.sleep(3000);
+        }
+        catch(InterruptedException e){}
+        executorService.shutdownNow();
+    }
+}
+```
+
+## 4. 콜백 방식의 작업 완료 통보
+##### 이번에는 콜백 방식을 이용해서 작업 완료 통보를 받는 방법에 대해서 알아 보자. 콜백이란 애플리케이션이 쓰레드에게 작업 처리를 요청한 후 , 쓰레드가 작업을 완료하면 특정 메소드를 자동 실행하는 기법을 말한다. 이때 자동으로 실행되는 메소드를 `콜백 메소드`라고 한다.
+<br />
+##### ExecutorService는 콜백을 위한 별도의 기능을 제공하지 않는다. 하지만 Runnable구현 클래스를 작성할 때 콜백 기능을 구현할 수 있다. 먼저 콜백 메소드를 가진 클래스가 있어야 하는데, 직접 정의해도 좋고 java.nio.channels.CompletionHandler를 이용해도 좋다. 이 인터페이스는 NIO패키지에 포함되어 있는데 비동기 통신에서 콜백 객체를 만들 때 사용된다. 그럼 CompletionHandler를 이용해서 콜백 객체를 만드는 방법을 살펴보자.
+```java
+CompletionHandler<V, A> callback = new CompletionHandler<V ,A>() {
+    @Override
+    public void completed(V result, A attachment)
+    {
+    }
+
+    @Override
+    public void failed(Throwsable exc, A attachment)
+    {
+    }
+};
+##### CompletionHandler는 completed()와 failed() 메소드가 있는데, completed()는 작업을 정상 처리 완료했을 때 호출되는 콜백 메소드이고, failed()는 작업 처리 도중 예외가 발생했을 때 호출되는 콜백 메소드이다. CompletionHandler의 V 타입 파라미터는 결과값의 타입이고, A는 첨부값의 타입이다. 첨부값은 콜백 메소드에 결과값 이외에 추가적으로 전달하는 객체라고 생각하면 된다. 만약 필요없다면 Void로 지정해주면 된다.
+##### 아래는 작업 처리 결과에 따라 콜백 메소드를 호출하는 Runnable객체다.
+
+```java
+Runnable task = new Runnable(){
+    @Override
+    public void run()
+    {
+        {
+            //작업 처리
+            V result = ...;
+            callback.completed(result, null); // 작업을 정상 처리했을 경우
+        }
+        catch(Exception e)
+        {
+            callback.failed(e, null);
+        }
+    }
+};
+```
+
+##### 작업 처리가 정상적으로 완료되면 completed() 콜백 메소드를 호출해서 결과값을 전달하고, 예외가 발생하면 failed() 콜백 메소드를 호출해서 예외 객체를 전달한다. 
+##### 아래는 두 개의 문자열을 정수화 해서 더하는 작업을 처리하고 결과를 콜백 방식으로 통보한다. 첫 작업은 3,3을 주었고 두 번째 작업은 3,삼 을 주어서 예외가 발생하도록 했다.
+
+```java
+import java.nio.channels.CompletionHandler;
+
+import java.util.concurrent.*;
+
+public class Main
+{
+    private ExecutorService executorService;
+
+    public Main()
+    {
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    }
+
+    private CompletionHandler<Integer, Void> callback = new CompletionHandler<Integer, Void>() {
+        @Override
+        public void completed(Integer result, Void attachment)
+        {
+            System.out.println("Completion() 실행 : " + result);
+        }
+
+        @Override
+        public void failed(Throwable exc, Void attachment)
+        {
+            System.out.println("failed() 실행 : " + exc.toString());
+        }
+    };
+
+    public void doWork(final String x, final String y)
+    {
+        Runnable task = new Runnable() {
+            @Override
+            public void run()
+            {
+                try
+                {                   
+                    int intX = Integer.parseInt(x);
+                    int intY = Integer.parseInt(y);
+                    int result = intX + intY;
+                    callback.completed(result, null); //정상 처리했을 경우
+                }
+                catch(NumberFormatException e)
+                {
+                    callback.failed(e,null); //예외가 발생했을 경우
+                }
+            }
+        };
+        executorService.shutdown();
+    }
+
+    public void finish()
+    {
+        executorService.shutdown();
+    }
+
+    public static void main(String[] args)
+    {
+        Main main = new Main();
+        main.doWork("3", "3");
+        main.doWork("3", "삼");
+        main.finish();
+    }
+}
+```
