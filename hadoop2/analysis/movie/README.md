@@ -79,3 +79,17 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 > 1,75420_1,75420,1,adventure,1440326829,3.5,Toy Story (1995),Adventure|Animation|Children|Comedy|Fantasy
 ##### 영화 번호 1인 토이스토리 영화는 장르를 `모험`으로 분류했고, 별점은 3.5개, 유저가 나눈 느낌은 모험|애니메이션|어린이|코미디|판타지로 나눴다.
 
+## popularTag
+##### 이 맵리듀스는 별점 4.0 이상인 영화들의 장르의 숫자를 출력한다.
+##### 그래서 어떠한 장르가 많은 사람들이 좋아하는지 알 수 있다.
+##### 출력 파일의 포맷은 다음과 같다.
+| genre | count |
+| --- | --- |
+
+##### 다음은 출력 데이터의 예다.
+> American Civil War	18
+
+##### 아메리칸 시빌 워가 18명의 사람들이 별점 4.0 이상을 주었다.
+
+## sort
+##### 이 맵리듀스는 popularTag의 출력을 졍렬하는 작업이다.
