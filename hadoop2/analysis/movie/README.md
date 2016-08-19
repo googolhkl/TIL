@@ -31,7 +31,7 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 ##### 이 파일은 다음과 같은 구조이다.
 | movieId | title | genres |
 ##### title은 바로 알 수 있듯이 영화 제목이다.
-##### genres는 영화의 장르이고 종류는 아래와 같다.
+##### genres는 영화의 장르이고 종류는 아래가 대표적이다.
 * Action
 * Adventure
 * Animation
@@ -77,7 +77,7 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 
 ##### 다음은 출력 데이터의 예다.
 > 1,75420_1,75420,1,adventure,1440326829,3.5,Toy Story (1995),Adventure|Animation|Children|Comedy|Fantasy
-##### 영화 번호 1인 토이스토리 영화는 장르를 `모험`으로 분류했고, 별점은 3.5개, 유저가 나눈 느낌은 모험|애니메이션|어린이|코미디|판타지로 나눴다.
+##### 영화 번호 1인 토이스토리 영화는 느낌을 `모험`으로 분류했고, 별점은 3.5개, 장르는  모험|애니메이션|어린이|코미디|판타지로 나눴다.
 
 ## popularTag
 ##### 이 맵리듀스는 별점 4.0 이상인 영화들의 장르의 숫자를 출력한다.
@@ -91,5 +91,24 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 
 ##### 아메리칸 시빌 워가 18명의 사람들이 별점 4.0 이상을 주었다.
 
-## sort
-##### 이 맵리듀스는 popularTag의 출력을 졍렬하는 작업이다.
+## popularMovie2sequenceFile 
+##### 이 작업은 `popularTag`의 결과 파일을 시퀀스 파일로 바꾸는 작업이다. 시퀀스 파일로 바꾸는 이유는 정렬을 하기 위해서이다.
+##### 출력 파일의 포맷은 다음과 같다.
+| count | genre | count |
+| --- | --- | --- |
+
+##### 다음은 출력 데이터의 예다.
+> 18 American Civil War	18
+
+##### popularTag의 결과에서 사람의 수를 키로 추가한 것 밖에 없다.
+
+## movieSort
+##### 이 작업은 사람의 수를 오름차순으로 정렬한 것이다.
+
+## 완료
+##### movieSort를 마치면 출력데이터를 아래 명령어로 로컬로 복사하자.
+```
+$ hdfs dfs -text movie_result/part-00000 > popularMovie.csv
+```
+
+##### popularMovie.csv 를 확인해 보면 어떤 것이 인기가 있는지 확인할 수 있다.
