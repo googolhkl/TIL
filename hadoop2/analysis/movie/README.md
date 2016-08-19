@@ -90,6 +90,7 @@ $ wget http://files.grouplens.org/datasets/movielens/ml-latest.zip
 > American Civil War	18
 
 ##### 아메리칸 시빌 워가 18명의 사람들이 별점 4.0 이상을 주었다.
+##### 참고로 속성간의 구분은 탭(\t)으로 한다.
 
 ## popularMovie2sequenceFile 
 ##### 이 작업은 `popularTag`의 결과 파일을 시퀀스 파일로 바꾸는 작업이다. 시퀀스 파일로 바꾸는 이유는 정렬을 하기 위해서이다.
