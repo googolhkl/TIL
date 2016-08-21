@@ -50,3 +50,13 @@ Body... (72문자 이내로)
 - 같은 저장소 안에서도 PR가능(`"내꺼 master에 적용해줘"`)
 - 관리자 입장에서 소중한 나의 저장소에 이상한 사람의 코드가 끼어드는 것을 방지
 
+
+## 7. 마지막으로
+### 더 찾아볼 것
+- 다른 사람 저장소 fork 해보기
+- 더 전략적인 Git-flow 사용법
+- Git LFS 플러그인(바이너리가 많을 때)
+- rebase -i(interactive), commit -amend, cherry-pick등 커밋 조작 명령 익히기
+- gTest등 각종 test도구 익히기
+- Travis, Jenkins등의 CI도구 익히기
+- HockeyApp, Testflight등의 배포도구 익히기 
