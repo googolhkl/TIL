@@ -238,4 +238,93 @@ Time taken: 0.937 seconds, Fetched: 10 row(s)
 
 | 함수 | 내용 |
 | --- | --- |
+| COUNT(1), COUNT(*) | 전체 데이터 건수를 반환한다. |
+| COUNT(DISTINCT 칼럼) | 유일한 칼럼값의 건수를 반환한다. |
+| SUM(칼럼) | 칼럼값의 합계를 반환한다. |
+| SUM(DISTINCT 칼럼) | 유일한 칼럼값의 합계를 반환한다. |
+| AVG(칼럼) | 칼럼값의 평균을 반환한다. |
+| AVG(DISTINCT 칼럼) | 유일한 칼럼값의 평균을 반환한다. |
+| MAX(칼럼) | 칼럼의 최댓값을 반환한다. |
+| MIN(칼럼) | 칼럼의 최솟값을 반환한다. |
+
+##### 내장 집계 함수 중 건수를 구하는 COUNT 함수를 이용한 쿼리문을 작성해 보겠다. 아래 쿼리문은 미국 항공 운항 지연 데이터 가운데 2008년도의 지연 건수를 조회하는 쿼리문이다.
+
+```
+SELECT COUNT(1)
+FROM airline_delay
+WHERE delayYear = 2008;
+```
+
+##### 하이브는 사용자가 입력한 `하이브QL`을 분석한 후, 맵리듀스 잡으로 생성해서 실행한다. 로그 상단에 이 쿼리문은 하나의 잡으로 구성되고 리듀서는 필요 없다는 메시지가 출력된다. 매퍼와 리듀서의 수행 단계가 퍼센트로 표시되며, 작업이 완료되면 몇 개의 맵 태스크와 리듀스 태스크가 실행됐고 HDFS와 CPU자원은 얼마나 소모했는지 표시된다. 위 질의의 경우 3개의 맵 태스크와 1개의 리듀스 태스크를 실행한 후, 질의 결과로 7009728을 출력한다.
+
+##### 하이브 쿼리는 SQL문의 `GROUP BY` 기능도 지원한다. `GROUP BY`를 써서 연도와 월별로 도착 지연 건수를 조회해 보겠다.
+##### 아래는 미국 항공 운항 지연 데이터 가운데 2008년도의 도착 지연 건수를 조회하는 쿼리문이다.
+
+```
+SELECT year, month, COUNT(*) AS arrive_delay_count
+FROM airline_delay
+WHERE delayYear = 2008
+AND ArrDelay > 0
+GROUP BY year, month;
+```
+##### 쿼리문을 실행하면 다음과 같이 2008년 1월부터 12월까지의 도착 지연 건수가 출력된다.
+
+```
+year	month	arrive_delay_count
+2008	2	278902
+2008	5	254673
+2008	8	239737
+2008	11	181506
+2008	3	294556
+2008	6	295897
+2008	9	169959
+2008	12	280493
+2008	1	279427
+2008	4	256142
+2008	7	264630
+2008	10	183582
+```
+<br />
+
+##### 이번에는 AVG 함수를 이용해 평균 지연 시간을 산출하겠다.
+##### 아래 쿼리문은 2008년도의 평균 지연 시간을 연도와 월별로 계산하는 쿼리문이다.
+
+```
+SELECT year,month, AVG(ArrDelay) AS avg_arrive_delay_time, AVG(DepDelay) AS avg_departure_delay_time
+FROM airline_delay
+WHERE delayYear = 2008
+AND ArrDelay > 0
+GROUP BY year, month;
+```
+
+##### 쿼리문을 실행하면 `DOUBLE`형태로 평균값이 출력된다. 최소 10분에서 길게는 40분까지 도착 시간이 지연된 것을 확인할 수 있다.
+<br />
+
+##### 하이브는 집계 함수 외에도 다양한 내장 함수를 지원한다. 아래 표는 하이브의 주요 내장 함수를 정리한 것이다.
+| 함수 | 내용 |
+| --- | --- |
+| concat(string a, string b, ...) | 문자열a 뒤에 문자열b를 붙여서 반환한다.<br />예를 들어, concat("facebook", "hive")를 수행하면 facebookhive를 반환한다. |
+| substr(string str, int start) | 문자열 str의 start인덱스에서 문자열의 마지막 인덱스까지 잘라낸 문자열을 반환한다.<br />예를 들어, substr("hadoop",4)는 "oop"를 반환한다. |
+| substr(string str, int start, int length) | 문자열 str의 start인덱스에서 설정한 length만큼을 잘라낸 문자열을 반환한다.<br />예를 들어, substr("hadoop",4,2)라고 하면 "oo"를 반환한다. |
+| upper(string str) | 문자열 str를 대문자로 변환해서 반환한다.<br />예를 들어, upper("hive")는 "HIVE"를 반환한다. |
+| ucase(string str) | upper 함수와 동일하다. |
+| lower(string str) | 문자열 str를 소문자로 변환해서 반환한다.<br />예를 들어, lower("HIVE")는 "hive"를 반환한다. |
+| lcase(string str) | lower 함수와 동일하다. |
+| trim(string str) | 문자열 str의 양쪽에 있는 공백을 제거한다.<br />예를 들어, trim(" hive ")는 "hive"를 반환한다. |
+| ltrim(string str) | 문자열 str의 왼쪽에 있는 공백을 제거한다.<br />예를 들어, ltrim(" hive")는 "hive"를 반환한다. |
+| rtrim(string str) | 문자열 str의 오른쪽에 있는 공백을 제거한다.<br />예를 들어, rtrim("hive ")는 "hive"를 반환한다. |
+| regexp_replace(string str, string regex, string replacement) | 문자열 str에서 정규식 표현식 regex와 일치하는 모든 문자열을 replacement로 변경해서 반환한다.<br />예를 들어, regexp_replace("hive","iv", "")는 "he"를 반환한다. |
+| from_unixtime(int unixtime) | 유닉스 시간 문자열(1970-01-01 00:00:00 UTC)을 현재 시스템의 시간대로 변경해서 반환한다. |
+| to_date(string timestamp) | 타임스탬프 문자열에서 날짜값만 반환한다.<br />예를 들어, to_date("2012_09_01 00:00:00")은 "2012-09-01"을 반환한다. |
+| round(double a) | double 값 a에 대한 반올림 정수값(BIGINT)을 반환한다. |
+| floor(double a) | double 값 a보다 작거나 같은 최대 정수값(BIGINT)을 반환한다. |
+| ceil(double a) | double 값 a보다 크거나 같은 최소한의 정수값(BIGINT)을 반환한다. |
+| rand(), rand(int seed) | 랜덤값을 반환한다. `seed` 파라미터로 랜덤값의 범위를 설정할 수 있다. |
+| year(string date) | 날짜 혹은 타임스탬프 문자열에서 연도만 반환한다.<br />예를 들어, year("2012-09-01 00:00:00")은 "2012"를 반환한다. |
+| month(string date) | 날짜 혹은 타임스탬프 문자열에서 월만 반환한다. <br />예를 들어, month("2012-09-01 00:00:00")은 "09"를 반환한다. |
+| day(string date) | 날짜 혹은 타임스탬프 문자열에서 일만 반환한다.<br />예를 들어, day("2012-09-01 00:00:00")은 "01"을 반환한다. |
+| get_json_object(string json_string, string path) | 디렉토리 path에서 문자열 json_string으로부터 json 객체를 추출하고 json 문자열로 반환한다. 만약 json이 유효하지 않으면 null 값을 반환한다. |
+| size(Map<K.V>) | 맵 타입의 엘리먼트의 개수를 반환한다. |
+| size(Array<T>) | 배열 타입의 엘리먼브의 개수를 반환한다. |
+| cast(<expr> as<type>) | 정규 표현식 expr을 type으로 타입을 변환한다.<br />예를 들어, cast("100" as BIGINT)는 "100"을 BIGINT로 변환해서 반환한다. 변환에 실패하면 null값을 리턴한다. |
 
