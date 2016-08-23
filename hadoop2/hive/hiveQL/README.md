@@ -511,3 +511,60 @@ Time taken: 19.754 seconds, Fetched: 10 row(s)
 
 ##### airline_delay 테이블에서 항공사 코드가 WN인 데이터를 출력했지만 carrier_code2 테이블에는 `WN`코드 데이터가 존재하지 않아 NULL로 출력됐다. 하지만 이 때 LEFT OUTER JOIN 절 때문에 carrier_code2 테이블에 데이터가 없더라도 airline_delay의 데이터가 조회된 것이다.
 
+
+## 5. 버킷 활용
+##### 버킷은 버킷 칼럼 해시를 기준으로 데이터를 지정된 개수의 파일로 분리해서 저정한다. 버킷은 테이블을 생성할 때 아래와 같은 형태로 선언한다.
+
+```
+CLUSTERED BY (칼럼) INTO 버킷 개수 BUCKETS;
+```
+
+##### 버킷을 사용하면 쿼리의 성능을 향상시킬 수 있다. 예를 들어, 조인키로 버킷을 생성해 두면 생성된 버킷 중 필요한 버킷만 조회하면 되기 때문에 디렉토리 전체를 풀스캔하는 것 보다 훨씬 빠르게 작업을 처리할 수 있다. 또한 버킷을 이용하면 샘플링을 이용한 다양한 쿼리를 수행할 수 있다.
+<br />
+
+##### 그럼 실제로 버킷이 어떠한 구조로 생성되고, 샘플링은 어떻게 하는지 알아보자.
+##### 우선 테스트용 테이블을 생성한다. 이 테이블은 UniqueCarrier 칼럼을 대상으로 20 개의 버킷을 생성한다.
+
+```
+hive> CREATE TABLE airline_delay2(Year INT, Month INT, UniqueCarrier STRING, ArrDelay INT, DepDelay INT)
+	    > CLUSTERED BY (UniqueCarrier) INTO 20 BUCKETS;
+	    OK
+	    Time taken: 2.972 seconds
+```
+
+##### 테이블을 생성했으면 2008년도 항공 운항 지연 데이터를 새로운 테이블에 등록한다.
+
+```
+hive> INSERT OVERWRITE TABLE airline_delay2
+    > SELECT year, month, uniquecarrier, arrdelay, depdelay
+    > FROM airline_delay
+    > WHERE delayyear = 2008;
+```
+
+##### HDFS의 하이브 웨어하우스 디렉토리를 조회하면 airline_delay2 디렉토리에 20개의 파일이 생성된 것을 확인할 수 있다. 000nn_0인 파일은 모두 버킷을 나타낸다.
+
+```
+hive> dfs -ls /user/hive/warehouse/airline_delay2;
+```
+
+##### 쿼리문에서 버킷 데이터 샘플을 사용하려면 TABLESAMPLE 절을 이용하면 된다. 다음은 20개의 버킷 중 첫 번째 버킷에서 샘플을 조회하는 쿼리문이다.
+
+```
+hive> SELECT uniquecarrier, COUNT(*)
+> FROM airline_delay2
+> TABLESAMPLE(BUCKET 1 OUT OF 20)
+> GROUP BY uniquecarrier;
+```
+
+##### 쿼리가 수행되면 다음과 같은 결과가 나오는데, `airline_delay` 조회했을 때와 항공사별 합계 건수가 다르게 나왔다. 이는 파일 전체를 조회하지 않고 첫 번째 버킷만 조회했기 때문이다.
+
+```
+uniquecarrier	_c1
+AA	204519
+B6	67478
+UA	193900
+Time taken: 5.301 seconds, Fetched: 3 row(s)
+```
+
+##### 이런 식으로 버킷을 활용한다면 샘플용 데이터를 조회할 때 크게 도움이 된다. 
+##### 버킷을 사용할 때는 버킷이 너무 작은 크기로 만들어지지 않게 주의해야 한다. 하둡에서 너무 작은 파일을 많이 처리하게 되면 부하가 발생하기 때문이다. 그리고 버킷은 사용자가 생각하는 샘플 데이터와 크기가 같거나 작아야만 한다.
