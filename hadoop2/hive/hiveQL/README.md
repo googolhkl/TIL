@@ -332,8 +332,10 @@ GROUP BY year, month;
 ## 4. 조인
 ##### 맵리듀스로 조인을 구하려면 수십 줄 이상의 클래스를 작성해야한다.
 ##### 하지만 하이브를 이용하면 간단하게 조인을 수행할 수 있다. 대신 아래와 같은 제약사항이 있다.
+
 - 하이브는 EQ 조인만 지원한다. EQ 조인이란 두 테이블을 대상으로 동일성을 비교한 후, 그 결과를 기준으로 조인하는 것이다. 이 조인에서는 조인 서술자로 등호(=)만 사용할 수 있다.
-- 하이브는 FROM 절에 테이블 하나만 지정할 수 있고, ON 키워드를 사용해 조인을 처리해야 한다.
+- 하이브는 FROM 절에 테이블 하나만 지정할 수 있고, ON 키워드를 사용해 조인을 처리해야 한다.<br />
+
 ##### 먼저 데이터를 준비하자.
 ```
 $ cd ~/airlineData
@@ -452,3 +454,60 @@ hive> SELECT A.year, A.origin, B.AirPort, A.dest, C.AirPort, COUNT(*)
 2008	YUM	Yuma MCAS-Yuma International	LAX	Los Angeles International	398
 Time taken: 46.09 seconds, Fetched: 5166 row(s)
 ```
+
+### 외부 조인(OUTER JOIN)
+하이브는 내부 조인 외에 외부 조인도 지원한다. 외부 조인을 테스트하기 위해 항공사 코드에서 일부 항공사 코드를 삭제하겠다. 다음과 같이 로컬에 있는 carrier.csv 파일의 1389번째 줄을 삭제한다.1389번째 줄은 항공사 코드값이 WN인 Southwest Airlines Co 항공사의 데이터다.
+
+```
+$ sed -e '1390d' carriers.csv >carriers_new.csv
+```
+
+##### 하이브 메타스토어 데이터베이스에는 항공사 코드 테이블을 추가로 생성한다.
+
+```
+hive> CREATE TABLE carrier_code2(Code STRING, Description STRING)
+> ROW FORMAT DELIMITED
+> FIELDS TERMINATED BY ","
+> LINES TERMINATED BY "\n"
+> STORED AS TEXTFILE;
+OK
+Time taken: 6.073 seconds
+```
+
+##### 추가한 항공사 테이블인 carrier_code2에 WN코드를 삭제한 코드 데이터를 업로드 한다.
+
+```
+hive> LOAD DATA LOCAL INPATH "/home/hkl/airlineData/carriers_new.csv"
+    > OVERWRITE INTO TABLE carrier_code2;
+    Loading data to table default.carrier_code2
+    Table default.carrier_code2 stats: [numFiles=1, numRows=0, totalSize=43727, rawDataSize=0]
+    OK
+    Time taken: 5.946 seconds
+
+```
+
+##### 코드 데이터 등록이 완료되면 다음과 같이 왼쪽 외부 조인 쿼리를 입력한다. 조인할 carrier_code2테이블에 WN코드가 없더라도 airline_delay 테이블에서 WN 코드가 등록된 데이터를 모두 출력한다.
+
+```
+hive> SELECT A.year, A.uniquecarrier, B.Code, B.Description
+    > FROM airline_delay A
+    > LEFT OUTER JOIN carrier_code2 B ON (A.uniqueCarrier = B.Code)
+    > WHERE A.uniquecarrier = "WN"
+    > LIMIT 10;
+(중략)
+a.year	a.uniquecarrier	b.code	b.description
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+2008	WN	NULL	NULL
+Time taken: 19.754 seconds, Fetched: 10 row(s)
+```
+
+##### airline_delay 테이블에서 항공사 코드가 WN인 데이터를 출력했지만 carrier_code2 테이블에는 `WN`코드 데이터가 존재하지 않아 NULL로 출력됐다. 하지만 이 때 LEFT OUTER JOIN 절 때문에 carrier_code2 테이블에 데이터가 없더라도 airline_delay의 데이터가 조회된 것이다.
+
