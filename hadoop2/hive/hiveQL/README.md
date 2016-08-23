@@ -327,4 +327,128 @@ GROUP BY year, month;
 | size(Map<K.V>) | 맵 타입의 엘리먼트의 개수를 반환한다. |
 | size(Array<T>) | 배열 타입의 엘리먼브의 개수를 반환한다. |
 | cast(<expr> as<type>) | 정규 표현식 expr을 type으로 타입을 변환한다.<br />예를 들어, cast("100" as BIGINT)는 "100"을 BIGINT로 변환해서 반환한다. 변환에 실패하면 null값을 리턴한다. |
+<br />
 
+## 4. 조인
+##### 맵리듀스로 조인을 구하려면 수십 줄 이상의 클래스를 작성해야한다.
+##### 하지만 하이브를 이용하면 간단하게 조인을 수행할 수 있다. 대신 아래와 같은 제약사항이 있다.
+- 하이브는 EQ 조인만 지원한다. EQ 조인이란 두 테이블을 대상으로 동일성을 비교한 후, 그 결과를 기준으로 조인하는 것이다. 이 조인에서는 조인 서술자로 등호(=)만 사용할 수 있다.
+- 하이브는 FROM 절에 테이블 하나만 지정할 수 있고, ON 키워드를 사용해 조인을 처리해야 한다.
+##### 먼저 데이터를 준비하자.
+```
+$ cd ~/airlineData
+$ wget http://stat-computing.org/dataexpo/2009/carriers.csv
+$ wget http://stat-computing.org/dataexpo/2009/airports.csv
+```
+
+### 내부 조인(INNER JOIN)
+##### 여기서는 항공사 코드데 이터를 저장하기 위한 테이블을 생성한다. 아래와 같이 두 개의 문자열로 구성하며, 필드와 라인의 구분은 airline_delay와 동일하게 설정한다.
+
+```
+hive> CREATE TABLE carrier_code(Code STRING, Description STRING)
+> ROW FORMAT DELIMITED
+> FIELDS TERMINATED BY ","
+> LINES TERMINATED BY "\n"
+> STORED AS TEXTFILE;
+OK
+Time taken: 8.324 seconds
+```
+
+##### 테이블이 생성되면 다음과 같이 따옴표를 제거한 데이터를 업로드 한다.
+
+```
+hive> LOAD DATA LOCAL INPATH "/home/hkl/airlineData/carriers.csv"
+    > OVERWRITE INTO TABLE carrier_code;
+    Loading data to table default.carrier_code
+    Table default.carrier_code stats: [numFiles=1, numRows=0, totalSize=43758, rawDataSize=0]
+    OK
+    Time taken: 6.822 seconds
+```
+
+##### 업로드가 완료되면 코드 테이블에서 10건의 데이터만 조회해보자.
+
+```
+hive> SELECT * FROM carrier_code LIMIT 10;
+OK
+carrier_code.code	carrier_code.description
+Code	Description
+"02Q"	"Titan Airways"
+"04Q"	"Tradewind Aviation"
+"05Q"	"Comlux Aviation
+"06Q"	"Master Top Linhas Aereas Ltd."
+"07Q"	"Flair Airlines Ltd."
+"09Q"	"Swift Air
+"0BQ"	"DCA"
+"0CQ"	"ACM AIR CHARTER GmbH"
+"0FQ"	"Maine Aviation Aircraft Charter
+Time taken: 0.111 seconds, Fetched: 10 row(s)
+```
+
+##### 쿼리를 실행할 때 위와 같이 코드와 설명값이 정상적으로 출력된다. 참고로 첫 번째 줄의 경수 코드값이 일치하는 경우가 없으므로 삭제하지 않아도 된다.<br />
+
+##### 이제 항공 운항 지연 테이블(`airline_delay`)과 항공사 코드 테이블(`carrier_code`)을 조인해보겠다. 아래와 같이 ON 키워드를 사용해 조인을 건다. 이 쿼리문은 두 테이블의 조인키인 `항공사 코드`로 내부 조인을 처리한다. 따라서 두 테이블의 `항공사 코드`가 일치하는 데이터만 조회하게 된다. 참고로 쿼리문을 보면 SQL 처럼 테이블 별칭(alias)을 사용했는데, 하이브QL도 SQL처럼 테이블 별칭을 지원한다. 대신 별칭 앞에 AS 키워드를 추가하면 오류가 발생하므로 사용할 때 주의해야 한다.
+
+```
+hive> SELECT A.Year, A.UniqueCarrier, B.Description, COUNT(*)
+> FROM airline_delay A
+> JOIN carrier_code B ON (A.UniqueCarrier = B.Code)
+> WHERE A.ArrDelay > 0
+> GROUP BY A.Year, A.UniqueCarrier, B.Description;
+```
+
+##### 이번에는 두 개 이상의 테이블을 내부 조인으로 처리해 보겠다. airports.csv 파일을 아래와 같이 모든 따옴표를 제거하고 첫 번째 줄을 삭제한다.
+
+```
+$ find .-name airports.csv -exec perl -p -i -e  's/"//g' {} \;
+$ sed -e '1d' airports.csv > airports_new.csv
+$ mv airports_new.csv airports.csv 
+```
+
+##### airports.csv 파일을 하이브에서 처리할 수 있게 다음과 같이 테이블을 생성한다.
+
+```
+hive> CREATE TABLE airport_code(Iata String, Airport String, City String, State String, Country String, Lat Double, Longitude Double)
+> ROW FORMAT DELIMITED
+> FIELDS TERMINATED BY ","
+> LINES TERMINATED BY "\n"
+> STORED AS TEXTFILE;
+OK
+Time taken: 2.014 seconds
+```
+
+##### 테이블이 생성되면 다음과 같이 airports.csv를 업로드 한다.
+
+```
+hive> LOAD DATA LOCAL INPATH "/home/hkl/airlineData/airports.csv" 
+> OVERWRITE INTO TABLE airport_code;
+Loading data to table default.airport_code
+Table default.airport_code stats: [numFiles=1, numRows=0, totalSize=210668, rawDataSize=0]
+OK
+Time taken: 3.536 seconds
+```
+
+##### airport_code 테이블에 공항 데이터 등록이 완료되면 다음과 같이 두 개의 테이블을 조인하는 쿼리를 실행한다.
+##### 이 쿼리문은 출발 공항 코드(Origin)와 도착 공항 코드(Dest), airport_code 테이블을 조인해 공항별 지연 건수를 계산하는 쿼리문이다.
+
+```
+hive> SELECT A.year, A.origin, B.AirPort, A.dest, C.AirPort, COUNT(*)
+> FROM airline_delay A
+> JOIN airport_code B ON (A.origin = B.Iata)
+> JOIN airport_code C ON (A.dest = C.Iata)
+> WHERE A.arrdelay > 0
+> GROUP BY A.year, A.origin, B.Airport, A.dest, C.AirPort;
+
+(중략)
+2008	XNA	Northwest Arkansas Regional	ATL	William B Hartsfield-Atlanta Intl	709
+2008	XNA	Northwest Arkansas Regional	CAK	Akron-Canton Regional	1
+2008	XNA	Northwest Arkansas Regional	DFW	Dallas-Fort Worth International	1144
+2008	XNA	Northwest Arkansas Regional	DTW	Detroit Metropolitan-Wayne County	107
+2008	XNA	Northwest Arkansas Regional	LEX	Blue Grass 	1
+2008	XNA	Northwest Arkansas Regional	LGA	LaGuardia	367
+2008	XNA	Northwest Arkansas Regional	MEM	Memphis International	397
+2008	YAK	Yakutat	CDV	Merle K (Mudhole) Smith	131
+2008	YUM	Yuma MCAS-Yuma International	IPL	Imperial County	118
+2008	YUM	Yuma MCAS-Yuma International	LAS	McCarran International	29
+2008	YUM	Yuma MCAS-Yuma International	LAX	Los Angeles International	398
+Time taken: 46.09 seconds, Fetched: 5166 row(s)
+```
