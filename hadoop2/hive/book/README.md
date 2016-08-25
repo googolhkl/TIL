@@ -26,3 +26,4 @@ ORDER BY word;
 
 ## 목차
 - [시작하기](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/1_start)
+- [데이터형과 파일 포맷](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/2_dataNfileFormat)
