@@ -39,7 +39,7 @@ The downloaded binary packages are in
 ##### 만약 패키지에 버전이 업그레이드 되면 `update.packages("패키지명")`을 실행하면 된다.
 - 패키지 설치 : install.packages("패키지명")
 - 패키지 로드 : library("패키지명") 또는 require("패키지명")
-- 패키지 업그레디으 : update.packages("패키지명")
+- 패키지 업그레이드 : update.packages("패키지명")
 <br />
 
 
