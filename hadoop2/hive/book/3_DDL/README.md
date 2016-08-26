@@ -225,3 +225,99 @@ hive> CREATE EXTERNAL TABLE IF NOT EXISTS mydb.employees3
     > LOCATION "/path/to/data";
 ```
 <br />
+
+
+## 4. 파티셔닝된 매니지드 테이블
+##### 많은 형태를 가질 수 있지만, 수평적으로 부하를 분산하기 위해 자주 사용하는 데이터를 사용자와 물리적으로 가까운 위치에 두는 등의 목적으로 사용한다.
+##### 하이브에는 파티셔닝된 테이블 개념이 있다. 이 기능은 성능상으로 중요한 이점이 있고 계층구조와 같은 논리 형태로 데이터를 구성하는데 도움을 즐 수 있다.
+##### 먼저 파티셔닝된 매니지드 테이블을 알아보자. employees 테이블로 돌아가서 우리가 아주 거대한 다국적 기업에서 일한다고 가정해보자. 인사 관리팀 사람들은 종종 특정 나라나 첫 번째 구획(미국의 주 단위 혹은 캐나다의 프로빈스)의 조건과 함께 쿼리를 실행한다. 단순하게 하기 위해 특정 지역을 `state` 단어로 쓰겠다. `address` 필드에는 반복되는 `state`값이 있다. 이것은 `state`파티션을 구분 짓는데 사용할 수 있다. `address`필드에서 `state`를 삭제할 수 있다. 주소에서 값을 빼내기 위해서 `address.state` 표현을 사용하므로 쿼리상의 모호함은 없다. 이제 아래와 같이 데이터를 `country`와 `state`로 파티셔닝해보자.
+
+```
+hive (mydb)> CREATE TABLE employees(
+           > name STRING,
+           > salary FLOAT,
+           > subordinates ARRAY<STRING>,
+           > deductions MAP<STRING, FLOAT>,
+           > address STRUCT<street:STRING, city:STRING, state:STRING, zip:INT>
+           > )
+           > PARTITIONED BY (country STRING, state STRING);
+```
+
+##### 테이블을 파티셔닝하는 것은 하이브가 데이터 저장소를 구성하는 방식을 바꾸도록 한다. 만약 mydb 데이터베이스 내에 테이블을 생성한다면 해당 테이블에 대한 `employees`디렉토리는 여전히 존재한다.
+
+```
+hdfs://googolhkls-cluster/user/hive/warehouse/mydb.db/employees
+```
+##### 하지만 하이브는 파티션 구조를 반영하기 위해 다음과 같이 하위 디렉토리를 생성한다.
+```
+...
+.../employees/country=CA/state=AB
+.../employees/country=CA/state=BC
+...
+.../employees/country=US/state=AL
+.../employees/country=US/state=AK
+```
+<br />
+
+### 4.1 파티셔닝된 외부 테이블
+##### 하이브에서 외부 테이블도 매니지드 테이블과 마찬가지로 파티셔닝할 수 있다. 일반적으로 아주 많은 데이터셋을 생성하는 곳에서 사용한다. 외부 테이블을 파티셔닝하는 것은 쿼리 성능을 최적화하는 동시에 다른 도구와 데이터를 공유하는 방법을 제공한다.
+
+##### 로그 파일 분석이라는 예를 생각해보자. 대부분은 `시간, 심각도(ERROR,WARNING, INFO), 서버 이름, 프로세스 아이디, 임의의 텍스트 메시지로 이루어진 표준 포맷의 로그 메시지`를 사용한다. 이때 ETL(추출, 변환, 로딩) 프로세스가 로그 메시지를 탭으로 구분된 레코드로 변환하고, 타임스탬프를 년, 월, 일 필드로 나누고, 시, 분, 초를 `hms` 필드로 합쳐 저장한다. 이러한 메시지 분석 작업은 하이브나 피그에서 제공하는 함수를 이용하여 수행할 수 있다.공간을 절약하기 위해서 타임스탬프와 관련된 필드는 작은 크기의 정수형 필드를 사용할 수 있다.
+
+```
+hive> CREATE EXTERNAL TABLE IF NOT EXISTS log_messages(
+    > hms 		INT,
+    > severity		STRING,
+    > server		STRING,
+    > process_id	INT,
+    > message		STRING)
+    > PARTITIONED BY (year INT, month INT, day INT)
+    > ROW FORMAT DELIMITED FIELDS TERMINATED BY "\t";
+```
+##### 하루에 쌓이는 로그 데이터자 파티셔닝과 쿼리를 충분히 빠르게 처리할 수 있는 크기라고 가정하자.
+##### 파티셔닝하지 않은 외부 테이블인 `stocks`를 생성할 때 (LOCATION 문 필요)를 떠올려보자.
+##### `ALTER TABLE`문으로 파티션을 추가하여 파티셔닝된 외부 테이블을 만들 수 있다, 년, 월, 일에 대해서 각 파티션의 키값을 지정했다고 가정하자. 예를들어 다음과 같이 2012년 1월 2일 파티션을 추가할 수 있다.
+```
+hive> ALTER TABLE log_messages ADD PARTITION(year = 2012, month = 1, day =2)
+    > LOCATION "hdfs"//googolhkls-cluster/data/log_message/2012/01/02';
+```
+##### 사용할 디렉토리 규칙은 사용자가 결정할 수 있는데, 반드시 지켜야 하는 것은 아니지만 데이터를 구성하는 논리 방식인 계층적 디렉토리 구조를 사용한다.
+<br />
+
+
+### 4.2 테이블 저장 포맷 사용자화
+##### 하이브는 `STORED AS TEXTFILE`문을 통해 텍스트 파일 형식을 기본으로 사용한다. 그리고 사용자는 테이블을 생성할 때 다양한 구분자를 기본값 대신 쓸 수 있다. `employees`테이블 정의를 다시 만들어 보자.
+```
+hive (mydb)> CREATE TABLE employees(
+           > name STRING,
+           > salary FLOAT,
+           > subordinates ARRAY<STRING>,
+           > deductions MAP<STRING, FLOAT>,
+           > address STRUCT<street:STRING, city:STRING, state:STRING, zip:INT>
+           > )
+           > ROW FORMAT DELIMITED
+           > FIELDS TERMINATED BY "\001"
+           > COLLECTION ITEMS TERMINATED BY "\002"
+           > MAP KEYS TERMINATED BY "\003"
+           > LINES TERMINATED BY "\n"
+           > STORED AS TEXTFILE;
+```
+##### `TEXTFILE`은 모든 필드가 영어 알파벳이나 숫자, 국제 문자셋 내의 문자를 이용하여 인코딩되는 것을 암시한다. 하이브는 출력되기 않는 문자를 구분자로 이용하기도 한다. `TEXTFILE`을 사용할 때에는 각 줄을 하나의 레코드로 간주한다. 
+
+##### 하이브는 레코드들이 파일 내에서 인코딩되는 방법과 컬럼들이 레코드 내에서 인코딩되는 방법을 구분한다. 사용자는 이러한 각각의 방식을 바꿀 수 있다.
+##### 레코드 인코딩은 `TEXTFILE`내부에 존재하는 자바 클래스(org.apache.hadoop.mapred.TextInputFormat)와 같은 입력 포맷 객체에 의해 다루어진다. 그리고 마지막 이름인 `TextInputFormat`은 최하위 패키지인 `mapred` 내의 클래스가 된다. 
+
+##### 써드-파티 입출력 포맷과 `SerDe`는 다양한 파일 포맷으로 사용자가 정의할 수 있다.
+##### 아래는 에이브로 통신 규칙을 통해서 접근할 수 있는 파일을 위한 입출력 파일 포맷과 SerDe다.  에이브로에 대해서는 `에이브로 하이브 SerDe`에서 알아보자.
+
+```
+hive> CREATE TABLE kst
+    > PARTITIONED BY (ds string)
+    > ROW FORMAT SERDE "com.linkedin.haivvreo.AvroSerDe"
+    > WITH SERDEPROPERTIES ("schema.url"="http://schema_provider/kst.avsc")
+    > STORED AS
+    > INPUTFORMAT "com.linkedin.haivvreo.AvroContainerInputFormat"
+    > OUTPUTFORMAT "com.linkedin.haivvreo.AvroContainerOutputFormat";
+```
+
+##### 위에서 `ROW FORMAT SERDE...`문은 사용할 `SerDe`를 지정한다. 하이브는 `SerDe`에서 사용될 설정 정보를 넘겨주기 위해 `WITH SERDEPROPERTIES` 기능을 제공한다. 여기서 지정하는 속성은 `SerDe`에서만 처리되고 하이브는 전혀 관여하지 않는다. 각 속성의 이름과 값은 작은 따옴표로 둘러 싸야 한다.
