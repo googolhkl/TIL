@@ -88,3 +88,140 @@ hive> DROP DATABASE IF EXISTS financials CASCADE;
 
 ## 2. 데이터베이스 변경
 ##### `ALTER DATABASE` 명령어를 이용하면 데이트베이스의 DBPROPERTIES 내 키-값 속성을 설정할 수 있다. 하지만 `데이터베이스 이름이나 디렉토리 위치같은 메타데이터는 변경될 수 없다.`
+<br />
+
+## 3. 테이블 생성
+##### 하이브의 `CREATE TABLE`문은 SQL 규칙을 따르지만 테이블의 데이터 파일 생성 위치나 사용할 포맷 등에 관해 다양한 유연성을 주는 확장 기능을 제공한다.
+```
+hive (default)> CREATE TABLE IF NOT EXISTS mydb.employees(
+              > name STRING COMMENT "EMployee name",
+              > salary FLOAT COMMENT "Employee salary",
+              > subordinates ARRAY<STRING> COMMENT "Names of subordinates",
+              > deductions MAP<STRING, FLOAT> COMMENT "Keys are deductions name, value are percentages",
+              > address STRUCT<street:STRING, city:STRING, state:STRING, zip:INT> COMMENT "Home address")
+              > COMMENT "Description of the table"
+              > TBLPROPERTIES ("create" = "hkl", "create_at" = "2016-08-26 12:57:00");
+```
+##### 어떠한 칼럼이든 데이터형을 지정한 이후에 주석을 추가할 수 있다. 데이터베이스 처럼 테이블 자체에도 주석을 추가할 수 있고, 여러 개의 테이블 속성을 넣을 수 있다. 대부분 사례에서 TBLPROPERTIES의 가장 큰 이점은 키-값 형태로 추가 문서화를 할 수 있다는 점이다.
+##### 이미 존재하는 테이블에서 데이터를 제외한 스키마만 복사할 수 있다.
+```
+hive (default)> CREATE TABLE IF NOT EXISTS mydb.employees2
+              > LIKE mydb.employees;
+```
+<br />
+
+##### `SHOW TABLE`명령어는 테이블을 나열할 때 사용한다. 별도의 인자가 없으면 현재 작업하는 데이터베이스의 테이블을 보여준다.
+```
+hive (default)> USE mydb;
+
+hive (mydb)> SHOW TABLES;
+tab_name
+employees
+employees2
+```
+
+##### 만약 같은 데이트베이스 내에서 작업하지 않더라도 아래 명령어를 실행하면 다른 데이트베이스의 테이블을 조회할 수 있다.
+```
+hive (mydb)> USE default;
+
+hive (default)> SHOW TABLES IN mydb;
+tab_name
+employees
+employees2
+```
+##### 너무 많은 테이블이 있을때 정규표현식을 이용하녀 나열할 테이블을 줄일 수 있다.
+```
+hive (default)> SHOW TABLES IN mydb "employee.";
+tab_name
+employees
+```
+<br />
+
+##### 테이블을 자세히 살펴보기 위해서 `DESCRIBE EXTENDED mydb.employees`명령어를 사용할 수 있다.
+```
+hive (default)> DESCRIBE EXTENDED mydb.employees;
+col_name	data_type	comment
+name                	string              	EMployee name       
+salary              	float               	Employee salary     
+subordinates        	array<string>       	Names of subordinates
+deductions          	map<string,float>   	Keys are deductions name, value are percentages
+address             	struct<street:string,city:string,state:string,zip:int>	Home address        
+	 	 
+Detailed Table Information	Table(tableName:employees, dbName:mydb, owner:hkl, createTime:1472183873, lastAccessTime:0, retention:0, sd:StorageDescriptor(cols:[FieldSchema(name:name, type:string, comment:EMployee name), FieldSchema(name:salary, type:float, comment:Employee salary), FieldSchema(name:subordinates, type:array<string>, comment:Names of subordinates), FieldSchema(name:deductions, type:map<string,float>, comment:Keys are deductions name, value are percentages), FieldSchema(name:address, type:struct<street:string,city:string,state:string,zip:int>, comment:Home address)], location:hdfs://googolhkls-cluster/user/hive/warehouse/mydb.db/employees, inputFormat:org.apache.hadoop.mapred.TextInputFormat, outputFormat:org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat, compressed:false, numBuckets:-1, serdeInfo:SerDeInfo(name:null, serializationLib:org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, parameters:{serialization.format=1}), bucketCols:[], sortCols:[], parameters:{}, skewedInfo:SkewedInfo(skewedColNames:[], skewedColValues:[], skewedColValueLocationMaps:{}), storedAsSubDirectories:false), partitionKeys:[], parameters:{transient_lastDdlTime=1472183873, create=hkl, comment=Description of the table, create_at=2016-08-26 12:57:00}, viewOriginalText:null, viewExpandedText:null, tableType:MANAGED_TABLE)	
+```
+##### 읽기가 불편하다. 이럴 땐 `EXTENDED` 대신 `FORMATTED`를 입력하면 읽기 좋고 더 많은 내용을 출력한다.
+```
+hive (default)> DESCRIBE FORMATTED mydb.employees;
+OK
+col_name	data_type	comment
+# col_name            	data_type           	comment             
+	 	 
+name                	string              	EMployee name       
+salary              	float               	Employee salary     
+subordinates        	array<string>       	Names of subordinates
+deductions          	map<string,float>   	Keys are deductions name, value are percentages
+address             	struct<street:string,city:string,state:string,zip:int>	Home address        
+	 	 
+# Detailed Table Information	 	 
+Database:           	mydb                	 
+Owner:              	hkl                 	 
+CreateTime:         	Fri Aug 26 12:57:53 KST 2016	 
+LastAccessTime:     	UNKNOWN             	 
+Protect Mode:       	None                	 
+Retention:          	0                   	 
+Location:           	hdfs://googolhkls-cluster/user/hive/warehouse/mydb.db/employees	 
+Table Type:         	MANAGED_TABLE       	 
+Table Parameters:	 	 
+	comment             	Description of the table
+	create              	hkl                 
+	create_at           	2016-08-26 12:57:00 
+	transient_lastDdlTime	1472183873          
+	 	 
+# Storage Information	 	 
+SerDe Library:      	org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe	 
+InputFormat:        	org.apache.hadoop.mapred.TextInputFormat	 
+OutputFormat:       	org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat	 
+Compressed:         	No                  	 
+Num Buckets:        	-1                  	 
+Bucket Columns:     	[]                  	 
+Sort Columns:       	[]                  	 
+Storage Desc Params:	 	 
+	serialization.format	1  
+```
+<br />
+
+### 3.1 매니지드 테이블(내부 테이블)
+##### 우리가 지금까지 생성한 테이블은 하이브가 데이터의 생명 주기를 제어하기 때문에 `매니지드 테이블`또는 `내부 테이블`이라고 부른다, 앞서 봐온 것처럼 하이브는 `hive.metastore.warehouse.dir(예를 들어 /user/hive/warehouse)` 속성에서 정의한 디렉토리에 하위 디렉토리를 만들어 테이블을 저장한다.
+##### 매니지드 테이블을 삭제할 때 하이브는 테이블 내의 데이터를 삭제한다.
+##### 하지만 매니지드 테이블은 다른 도구와 데이터를 공유하기에는 조금 불편한 점이 있다. 예를 들면 피그나 다른 도구로 테이블을 생성하고 이 데이터에 대해 쿼리를 실행하고는 싶으나 하이브가 데이터를 소유하지 않기를 원할 수 있다. 이럴 때 매니지드 테이블 대신 `외부 테이블`을 정의하여 하이브가 해당 데이터를 소유하지 않도록 한다.
+<br />
+
+### 3.2 외부 테이블
+##### 주식 시장 데이터를 분석하는 사례를 생각해보자. 주기적으로 Infochimps(http://infochimps.com/datasets)와 같은 데이터 소스로부터 나스닥과 NYSE데이터를 가져온 뒤 다양한 도구를 이용해 이 데이터를 연구하고자 한다. 다음에 사용할 스키마와 이러한 데이터 소스의 스키마는 일치한다. 데이터 파일이 분산 파일시스템의 `/data/stocks` 디렉토리 안에 존재한다고 가정하자.
+##### 아래 테이블 선언은 `/data/stocks` 내 쉼표로 구분된 데이터를 가진 파일을 읽을 수 있는 외부 테이블을 생성한다.
+
+```
+hive> CREATE EXTERNAL TABLE IF NOT EXISTS stocks(
+    > exchange		STRING,
+    > symbol 		STRING,
+    > ymd		STRING,
+    > price_open	FLOAT,
+    > price_high	FLOAT,
+    > price_low		FLOAT,
+    > price_close	FLOAT,
+    > volume		INT,
+    > price_adj_close   FLOAT)
+    > ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+    > LOCATION "/data/stocks";
+```
+##### `EXTERNAL` 예약어는 해당 테이블이 외부에 있으면 `LOCATION ...`절에서 지정한 위치에 존재한다는 것을 하이브에게 알려준다.
+##### 외부에 존재하기 때문에 하이브는 해당 데이터를 소유하지 않는다. 따라서 테이블을 삭제할 때 테이블의 메타데이터는 지워지지만 해당 데이터는 지우지는 않는다. 
+##### 매니지드 테이블(내부 테이블)과 외부 테이블 사이에는 작은 차이점이 존재한다. 일부 HiveQL 문은 외부 테이블에 대해서 적용되지 않는데 이것은 다음에 살펴보자.
+##### 매니지드 테이블인지 외부 테이블인지 여부는 `DESCRIBE EXTENDED 테이블명` 또는 `DESCRIBE FORMATTED 테이블명'을 실행하면 알 수 있다.
+##### 매매니지드 테이블과 마찬가지로 이미 존재하는 테이블로부터 데이터를 제외하고 스키마를 복사할 수 있다.
+```
+hive> CREATE EXTERNAL TABLE IF NOT EXISTS mydb.employees3
+    > LIKE mydb.employees
+    > LOCATION "/path/to/data";
+```
+<br />
