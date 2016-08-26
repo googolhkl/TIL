@@ -321,3 +321,11 @@ hive> CREATE TABLE kst
 ```
 
 ##### 위에서 `ROW FORMAT SERDE...`문은 사용할 `SerDe`를 지정한다. 하이브는 `SerDe`에서 사용될 설정 정보를 넘겨주기 위해 `WITH SERDEPROPERTIES` 기능을 제공한다. 여기서 지정하는 속성은 `SerDe`에서만 처리되고 하이브는 전혀 관여하지 않는다. 각 속성의 이름과 값은 작은 따옴표로 둘러 싸야 한다.
+<br />
+
+## 5. 테이블 삭제
+##### 하이브는 SQL에서도 이미 친숙한 `DROP TABLE` 명령어를 지원한다.
+```
+hive> DROP TABLE IF EXISTS employees;
+```
+##### 외부 테이블이라면 메타데이터는 지워지지만 데이터는 남아있다.
