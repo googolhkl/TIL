@@ -83,3 +83,8 @@ hive> DROP DATABASE IF EXISTS financials;
 ```
 hive> DROP DATABASE IF EXISTS financials CASCADE;
 ```
+<br />
+
+
+## 2. 데이터베이스 변경
+##### `ALTER DATABASE` 명령어를 이용하면 데이트베이스의 DBPROPERTIES 내 키-값 속성을 설정할 수 있다. 하지만 `데이터베이스 이름이나 디렉토리 위치같은 메타데이터는 변경될 수 없다.`
