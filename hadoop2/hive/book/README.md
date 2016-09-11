@@ -32,3 +32,5 @@ ORDER BY word;
 - [시작하기](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/1_start)
 - [데이터형과 파일 포맷](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/2_dataNfileFormat)
 - [데이터 정의](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/3_DDL)
+- [데이터 조작](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/4_DML)
+
