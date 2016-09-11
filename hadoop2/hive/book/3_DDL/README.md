@@ -329,3 +329,92 @@ hive> CREATE TABLE kst
 hive> DROP TABLE IF EXISTS employees;
 ```
 ##### 외부 테이블이라면 메타데이터는 지워지지만 데이터는 남아있다.
+
+  
+## 6. 테이블 변경
+##### 대부분의 테이블 속성은 `ALTER TABLE` 문을 통해서 변경한다. 이는 결국 테이블의 메타데이터는 변경시키지만, 데이터 자체는 변경시키지 않는다. 이러한 문은 스키마(스키마는 테이블의 열이름 이라고 생각하면 된다.)) 내에 실수가 있는 것을 바로 잡거나 파티션 위치를 이동하거나 그 외에 다른 동작을 할 때 사용한다.
+
+  
+### 6.1 테이블명 변경
+##### 아래 문장을 통해 `airline_delay`테이블명을 `renamed_airline_delay`로 변경할 수 있다.
+
+```
+hive> ALTER TABLE airline_delay RENAME TO renamed_airline_delay;
+```
+
+  
+### 6.2 테이블 파티션 추가, 변경, 삭제
+##### 테이블에 새로운 파티션을 넣으려면 `ALTER TABLE table_이름 ADD PARTITION` 문을 수행한다. 아래에서 추가 옵션과 함께 동일한 명령을 보여준다.
+```
+hive> ALTER TABLE log_message ADD IF NOT EXISTS
+PARTITION (year = 2011, month = 1, day = 1) LOCATION '/logs/2011/01/01'
+PARTITION (year = 2011, month = 1, day = 2) LOCATION '/logs/2011/01/02'
+PARTITION (year = 2011, month = 1, day = 3) LOCATION '/logs/2011/01/03'
+...;
+```
+
+  
+##### 유사하게 아래와 같이 파티션 위치를 변경할 수 있다.
+```
+hive> ALTER TABLE log_message PARTITION(year = 2011, month = 12, day =12)
+SET LOCATION 's3n://ourbucket/logs/2011/01/02';
+```
+##### 이 명령어는 이전 위치에서 데이터를 옮기거나 삭제하지 않는다.
+
+  
+##### 마지막으로 다음과 같이 파티션을 삭제할 수 있다.
+```
+hive> ALTER TABLE log_message DROP IF EXISTS PARTITION(year = 2011,  month =12, day =2);
+```
+
+##### `IF EXISTS~는 마찬가지로 옵션이다. 매니지드 테이블이라면 `ALTER TABLE ... ADD PARTITION`으로 생성한 파티션일지라도 데이터와 메타데이터가 동시에 삭제된다. 외부 테이블은 데이터가 삭제되지 않는다.
+
+  
+### 6.3 칼럼 변경
+##### 다음과 같이 칼럼명이나 위치, 데이터형 혹은 주석을 변경할 수 있다.
+```
+hive> ALTER TABLE test
+    > CHANGE COLUMN age number STRING
+    > COMMENT '이름과 과 나이를 주민번호와 이름으로 수와 이름으로 수정'
+    > FIRST;
+```
+##### `test`테이블의 칼럼은 name,age 였다. 이 구조를 위 명령어로 number,name구조로 바꾸고 number는 STRING타입이다. FIRST는 지금 변경하는 칼럼을 가장 앞으로 오라는 의미이고 `name`뒤로 옮기고 싶다면 `AFTER name`명령어를 사용하면 된다.
+##### 마찬가지로 이 명령어는 메타데이터만 변경한다. 컬럼을 옮길 때 데이터는 새로운 스키마와 일치하거나 다른수단을 이용해서 일치할 수 있도록 변경해야 한다.
+
+  
+### 6.4 칼럼 추가
+##### 이미 존재하는 칼럼의 마지막과 파티셔닝 칼럼 앞에 새로운 칼럼을 추가할 수 있다.
+```
+hive> ALTER TABLE test ADD COLUMNS(
+    > age INT COMMENT '나이,
+    > address STRING COMMENT '주소');
+
+```
+##### 새로운 칼럼의 위치가 마음에 들지 않는다면 `ALTER COLUMN table_이름 CHANGE COLUMN`문을 이용해 올바른 위치로 변경할 수 있다.
+
+  
+### 6.5 칼럼 삭제 및 교체
+##### 아래는 이미 존재하는 모든 칼럼을 삭제하고 새로운 칼럼을 추가하는 명령이다.
+```
+hive> ALTER TABLE test REPLACE COLUMNS(
+    > name STRING,
+    > age INT,
+    > phone STRING);
+```
+
+  
+### 6.6 테이블 속성 변경
+##### 다음과 같이 테이블 속성을 추가하거나 변경할 수 있지만 삭제는 불가능하다.
+```
+hive> ALTER TABLE test SET TBLPROPERTIES(
+    > 'notes' = 'hello world');
+```
+
+  
+### 6.7 저장소 속성 변경
+##### 포맷과 SerDe속성을 변경하는 여러 가지 `ALTER TABLE` 문이 있다.
+##### 다음은 시퀀스 파일로 변경하는 예제다.
+```
+hive> ALTER TABLE test
+    > SET FILEFORMAT SEQUENCEFILE;
+```
