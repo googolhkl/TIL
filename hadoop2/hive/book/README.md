@@ -28,3 +28,7 @@ ORDER BY word;
 ### 하둡과 하이브 설치하기
 ##### [하둡 설치하기](https://github.com/googolhkl/TIL/tree/master/hadoop2/installation)과 [하이브 설치하기](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/installation)를 설치하자.
 
+## 목차
+- [시작하기](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/1_start)
+- [데이터형과 파일 포맷](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/2_dataNfileFormat)
+- [데이터 정의](https://github.com/googolhkl/TIL/tree/master/hadoop2/hive/book/3_DDL)
